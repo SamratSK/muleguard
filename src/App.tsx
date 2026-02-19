@@ -463,7 +463,7 @@ function GraphPage() {
     const loadCsv = async () => {
       const startedAt = performance.now();
       try {
-        const res = await fetch('/abc_10k.csv');
+        const res = await fetch('/abc_30.csv');
         if (!res.ok) return;
         const text = await res.text();
         setAnalysisMs(null);
@@ -493,7 +493,7 @@ function GraphPage() {
         }
         const rows = results.flatMap((r) => r.rows || []);
 
-        worker.postMessage({ rows, source: 'abc_10k.csv' });
+        worker.postMessage({ rows, source: 'abc_30.csv' });
       } catch {
         // Ignore CSV load errors for now.
       }
