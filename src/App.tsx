@@ -463,7 +463,7 @@ function GraphPage() {
     const loadCsv = async () => {
       const startedAt = performance.now();
       try {
-        const res = await fetch('/abc_30.csv');
+        const res = await fetch('abc_30.csv');
         if (!res.ok) return;
         const text = await res.text();
         setAnalysisMs(null);
