@@ -14,6 +14,13 @@ import {
   ChevronRight,
   Lock,
   Search,
+  AlertTriangle,
+  Activity,
+  Network,
+  Table as TableIcon,
+  Shuffle,
+  Layers,
+  Download,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -73,7 +80,7 @@ function HomePage() {
   return (
     <div className="min-h-screen font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Navigation */}
-      <nav className="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
@@ -81,13 +88,13 @@ function HomePage() {
             </div>
             <span className="font-display font-bold text-xl tracking-tight">MuleGuard AI</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#" className="hover:text-emerald-600 transition-colors">
               About
             </a>
             <a
               href="#"
-              className="bg-zinc-900 text-white px-4 py-2 rounded-full hover:bg-zinc-800 transition-all"
+              className="bg-slate-900 text-white px-4 py-2 rounded-full hover:bg-slate-800 transition-all"
             >
               Working
             </a>
@@ -103,12 +110,12 @@ function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="font-display text-5xl md:text-6xl font-bold text-zinc-900 leading-[1.1] mb-6">
+            <h1 className="font-display text-5xl md:text-6xl font-bold text-slate-900 leading-[1.1] mb-6">
               Expose Money Muling <br />
               <span className="text-emerald-600 italic">Before</span> It Happens.
             </h1>
 
-            <p className="text-lg text-zinc-600 mb-10 max-w-lg leading-relaxed">
+            <p className="text-lg text-slate-600 mb-10 max-w-lg leading-relaxed">
               Our advanced neural patterns identify suspicious transaction flows, protecting your
               institution from sophisticated financial crime networks.
             </p>
@@ -139,12 +146,12 @@ function HomePage() {
                   transition={{ delay: 0.2 + i * 0.1 }}
                   className="flex gap-4"
                 >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
                     <point.icon className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-zinc-900">{point.title}</h3>
-                    <p className="text-sm text-zinc-500">{point.desc}</p>
+                    <h3 className="font-bold text-slate-900">{point.title}</h3>
+                    <p className="text-sm text-slate-500">{point.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -159,12 +166,12 @@ function HomePage() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-emerald-500/5 rounded-[2.5rem] blur-2xl" />
-            <div className="relative bg-white border border-zinc-200 rounded-3xl p-8 shadow-xl shadow-zinc-200/50">
+            <div className="relative bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
               <div className="mb-8">
-                <h2 className="font-display text-2xl font-bold text-zinc-900 mb-2">
+                <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
                   Analyze Transactions
                 </h2>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-slate-500">
                   Upload your transaction log to start the AI scan.
                 </p>
               </div>
@@ -175,7 +182,7 @@ function HomePage() {
                   'border-2 border-dashed rounded-2xl p-10 transition-all cursor-pointer flex flex-col items-center justify-center text-center',
                   isDragActive
                     ? 'border-emerald-500 bg-emerald-50/50'
-                    : 'border-zinc-200 hover:border-zinc-300',
+                    : 'border-slate-200 hover:border-slate-300',
                   file ? 'border-emerald-500 bg-emerald-50/10' : ''
                 )}
               >
@@ -190,11 +197,11 @@ function HomePage() {
                       exit={{ opacity: 0 }}
                       className="flex flex-col items-center"
                     >
-                      <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mb-4">
-                        <Upload className="w-8 h-8 text-zinc-400" />
+                      <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                        <Upload className="w-8 h-8 text-slate-400" />
                       </div>
-                      <p className="text-zinc-900 font-medium mb-1">Drop your CSV here</p>
-                      <p className="text-xs text-zinc-400">Max file size 5MB • CSV only</p>
+                      <p className="text-slate-900 font-medium mb-1">Drop your CSV here</p>
+                      <p className="text-xs text-slate-400">Max file size 5MB • CSV only</p>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -206,7 +213,7 @@ function HomePage() {
                       <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                         <FileText className="w-8 h-8 text-emerald-600" />
                       </div>
-                      <p className="text-zinc-900 font-medium mb-1 truncate max-w-[200px]">
+                      <p className="text-slate-900 font-medium mb-1 truncate max-w-[200px]">
                         {file.name}
                       </p>
                       <p className="text-xs text-emerald-600 font-medium">
@@ -217,7 +224,7 @@ function HomePage() {
                           e.stopPropagation();
                           setFile(null);
                         }}
-                        className="mt-4 text-xs text-zinc-400 hover:text-zinc-600 underline"
+                        className="mt-4 text-xs text-slate-400 hover:text-slate-600 underline"
                       >
                         Remove file
                       </button>
@@ -244,7 +251,7 @@ function HomePage() {
                   'w-full mt-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg',
                   file && !isAnalyzing
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200'
-                    : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
                 )}
               >
                 {isAnalyzing ? (
@@ -265,24 +272,24 @@ function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 py-12 bg-white">
+      <footer className="border-t border-slate-200 py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2 opacity-50 grayscale">
             <ShieldAlert className="w-5 h-5" />
             <span className="font-display font-bold text-lg">MuleGuard AI</span>
           </div>
-          <div className="flex gap-8 text-sm text-zinc-400">
-            <a href="#" className="hover:text-zinc-600">
+          <div className="flex gap-8 text-sm text-slate-400">
+            <a href="#" className="hover:text-slate-600">
               Privacy Policy
             </a>
-            <a href="#" className="hover:text-zinc-600">
+            <a href="#" className="hover:text-slate-600">
               Terms of Service
             </a>
-            <a href="#" className="hover:text-zinc-600">
+            <a href="#" className="hover:text-slate-600">
               Contact Support
             </a>
           </div>
-          <p className="text-sm text-zinc-400">© 2026 MuleGuard AI. All rights reserved.</p>
+          <p className="text-sm text-slate-400">© 2026 MuleGuard AI. All rights reserved.</p>
         </div>
       </footer>
     </div>
@@ -361,8 +368,8 @@ function GraphPage() {
         {
           selector: 'node',
           style: {
-            'background-color': '#16a34a',
-            'border-color': '#0f766e',
+            'background-color': '#10b981',
+            'border-color': '#334155',
             'border-width': 1,
             color: '#0f172a',
             label: 'data(label)',
@@ -377,43 +384,43 @@ function GraphPage() {
         {
           selector: 'node.cycle',
           style: {
-            'background-color': '#f97316',
-            'border-color': '#ea580c',
+            'background-color': '#ef4444',
+            'border-color': '#b91c1c',
           },
         },
         {
           selector: 'node.fan-in',
           style: {
-            'background-color': '#0ea5e9',
-            'border-color': '#0284c7',
+            'background-color': '#f59e0b',
+            'border-color': '#d97706',
           },
         },
         {
           selector: 'node.fan-out',
           style: {
-            'background-color': '#6366f1',
-            'border-color': '#4f46e5',
+            'background-color': '#f59e0b',
+            'border-color': '#d97706',
           },
         },
         {
           selector: 'node.stage-1',
           style: {
-            'background-color': '#facc15',
-            'border-color': '#eab308',
+            'background-color': '#f59e0b',
+            'border-color': '#d97706',
           },
         },
         {
           selector: 'node.stage-2',
           style: {
-            'background-color': '#a3e635',
-            'border-color': '#84cc16',
+            'background-color': '#f43f5e',
+            'border-color': '#be123c',
           },
         },
         {
           selector: 'node.stage-3',
           style: {
-            'background-color': '#f472b6',
-            'border-color': '#ec4899',
+            'background-color': '#f97316',
+            'border-color': '#ea580c',
           },
         },
         {
@@ -427,8 +434,8 @@ function GraphPage() {
           selector: 'edge',
           style: {
             width: 1.2,
-            'line-color': '#64748b',
-            'target-arrow-color': '#64748b',
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
           },
@@ -706,8 +713,8 @@ function GraphPage() {
         {
           selector: 'node',
           style: {
-            'background-color': '#16a34a',
-            'border-color': '#0f766e',
+            'background-color': '#10b981',
+            'border-color': '#334155',
             'border-width': 1,
             color: '#0f172a',
             label: 'data(label)',
@@ -730,8 +737,8 @@ function GraphPage() {
           selector: 'edge',
           style: {
             width: 1.4,
-            'line-color': '#64748b',
-            'target-arrow-color': '#64748b',
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
           },
@@ -887,14 +894,14 @@ function GraphPage() {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-[#f9faf9] font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen w-screen bg-slate-100 font-sans selection:bg-emerald-100 selection:text-emerald-900">
       <div ref={containerWrapRef} className="h-screen w-screen flex">
         <div className="relative h-full flex-1">
           <div ref={containerRef} className="h-full w-full graph-grid" />
-          <div className="absolute left-5 bottom-5 z-20 flex flex-col items-center rounded-2xl border border-zinc-200 bg-white/90 shadow-lg backdrop-blur">
+          <div className="absolute left-5 bottom-5 z-20 flex flex-col items-center rounded-2xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
             <button
               type="button"
-              className="px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-emerald-600"
+              className="px-3 py-2 text-sm font-bold text-slate-700 hover:text-emerald-600"
               onClick={() => {
                 const cy = cyRef.current;
                 if (!cy) return;
@@ -906,7 +913,7 @@ function GraphPage() {
             </button>
             <button
               type="button"
-              className="w-full border-y border-zinc-200 px-3 py-2 text-[11px] font-semibold text-zinc-600 hover:text-emerald-600"
+              className="w-full border-y border-slate-200 px-3 py-2 text-[11px] font-semibold text-slate-600 hover:text-emerald-600"
               onClick={() => {
                 const cy = cyRef.current;
                 if (!cy) return;
@@ -919,7 +926,7 @@ function GraphPage() {
             </button>
             <button
               type="button"
-              className="px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-emerald-600"
+              className="px-3 py-2 text-sm font-bold text-slate-700 hover:text-emerald-600"
               onClick={() => {
                 const cy = cyRef.current;
                 if (!cy) return;
@@ -932,7 +939,7 @@ function GraphPage() {
           </div>
           {hoverInfo && nodeDetails[hoverInfo.id] && (
             <div
-              className="absolute z-20 -translate-y-full rounded-md border border-zinc-200 bg-white/90 px-2 py-1 text-[11px] text-zinc-700 shadow"
+              className="absolute z-20 -translate-y-full rounded-md border border-slate-200 bg-white/90 px-2 py-1 text-[11px] text-slate-700 shadow"
               style={{ left: hoverInfo.x + 10, top: hoverInfo.y - 10 }}
             >
               {nodeDetails[hoverInfo.id].name} — SS {nodeDetails[hoverInfo.id].suspicion_score.toFixed(1)}%
@@ -940,12 +947,12 @@ function GraphPage() {
           )}
           {pinnedInfo && nodeDetails[pinnedInfo.id] && (
             <div
-              className="absolute z-30 -translate-y-full rounded-lg border border-zinc-200 bg-white/95 px-3 py-2 text-xs text-zinc-700 shadow-lg"
+              className="absolute z-30 -translate-y-full rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-lg"
               style={{ left: pinnedInfo.x + 12, top: pinnedInfo.y - 12 }}
               tabIndex={0}
               onBlur={() => setPinnedInfo(null)}
             >
-              <div className="font-semibold text-zinc-900">
+              <div className="font-medium text-slate-900">
                 {nodeDetails[pinnedInfo.id].name} (SS: {nodeDetails[pinnedInfo.id].suspicion_score.toFixed(1)}%)
               </div>
               <div className="mt-1">Net balance: {nodeDetails[pinnedInfo.id].net_balance}</div>
@@ -989,12 +996,12 @@ function GraphPage() {
           )}
           {pinnedEdgeInfo && edgeDetails[pinnedEdgeInfo.id] && (
             <div
-              className="absolute z-30 -translate-y-full rounded-lg border border-zinc-200 bg-white/95 px-3 py-2 text-xs text-zinc-700 shadow-lg"
+              className="absolute z-30 -translate-y-full rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-lg"
               style={{ left: pinnedEdgeInfo.x + 12, top: pinnedEdgeInfo.y - 12 }}
               tabIndex={0}
               onBlur={() => setPinnedEdgeInfo(null)}
             >
-              <div className="font-semibold text-zinc-900">Edge: {pinnedEdgeInfo.id}</div>
+              <div className="font-medium text-slate-900">Edge: {pinnedEdgeInfo.id}</div>
               <div className="mt-1">Net amount: {edgeDetails[pinnedEdgeInfo.id].net}</div>
               <div>Transactions: {edgeDetails[pinnedEdgeInfo.id].count}</div>
               {edgeDetails[pinnedEdgeInfo.id].first_txn && (
@@ -1011,30 +1018,30 @@ function GraphPage() {
           )}
           {connectedNodesPopup && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-              <div className="w-[900px] max-w-[95vw] h-[80vh] rounded-2xl border border-zinc-200 bg-white shadow-xl overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200">
-                  <div className="text-sm font-semibold text-zinc-900">
+              <div className="w-[900px] max-w-[95vw] h-[80vh] rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
+                  <div className="text-sm font-bold text-slate-900">
                     {connectedNodesPopup.title}
                   </div>
                   <button
                     type="button"
-                    className="px-3 py-1 rounded-full text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-50"
+                    className="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 bg-white hover:bg-slate-50"
                     onClick={() => setConnectedNodesPopup(null)}
                   >
                     ✕
                   </button>
                 </div>
                 <div className="flex h-[calc(80vh-52px-56px)]">
-                  <div className="flex-1 bg-[#f9faf9]">
+                  <div className="flex-1 bg-slate-100">
                     <div ref={miniGraphRef} className="h-full w-full graph-grid" />
                   </div>
-                  <div className="w-[320px] border-l border-zinc-200 p-4 overflow-y-auto">
+                  <div className="w-[320px] border-l border-slate-200 p-4 overflow-y-auto">
                     {nodeDetails[connectedNodesPopup.id] && (
                       <>
-                        <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                        <div className="text-xs font-medium tracking-widest text-slate-400 mb-2">
                           NODE DETAILS
                         </div>
-                        <div className="font-semibold text-zinc-900">
+                        <div className="font-medium text-slate-900">
                           {nodeDetails[connectedNodesPopup.id].name} (SS:{' '}
                           {nodeDetails[connectedNodesPopup.id].suspicion_score.toFixed(1)}%)
                         </div>
@@ -1061,7 +1068,7 @@ function GraphPage() {
                       const stats = computeGroupStats(connectedNodesPopup.nodes);
                       return (
                         <div className="mt-4">
-                          <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                          <div className="text-xs font-medium tracking-widest text-slate-400 mb-2">
                             GROUP STATS
                           </div>
                           <div>Nodes involved: {stats.nodeCount}</div>
@@ -1075,13 +1082,13 @@ function GraphPage() {
                         </div>
                       );
                     })()}
-                    <div className="mt-4 text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                    <div className="mt-4 text-xs font-medium tracking-widest text-slate-400 mb-2">
                       CONNECTED NODES
                     </div>
                     {connectedNodesPopup.nodes.length === 0 ? (
-                      <div className="text-zinc-400">No connections</div>
+                      <div className="text-slate-400">No connections</div>
                     ) : (
-                      <ul className="space-y-1 text-sm text-zinc-700">
+                      <ul className="space-y-1 text-sm text-slate-700">
                         {connectedNodesPopup.nodes.map((n) => (
                           <li key={n}>{n}</li>
                         ))}
@@ -1089,10 +1096,10 @@ function GraphPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center justify-end px-5 py-3 border-t border-zinc-200 bg-white">
+                <div className="flex items-center justify-end px-5 py-3 border-t border-slate-200 bg-white">
                   <button
                     type="button"
-                    className="px-4 py-2 rounded-full text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-50"
+                    className="px-4 py-2 rounded-full text-xs font-medium border border-slate-200 bg-white hover:bg-slate-50"
                     onClick={() => setConnectedNodesPopup(null)}
                   >
                     Close
@@ -1114,7 +1121,7 @@ function GraphPage() {
         <div
           ref={paneRef}
           className={cn(
-            'fixed right-0 top-0 h-screen flex-none border-l-2 border-[oklch(0.92_0.004_286.32)] bg-white backdrop-blur-md transition-all',
+            'fixed right-0 top-0 h-screen flex-none border-l border-slate-200 bg-white transition-all',
             'shadow-[-8px_0_24px_-12px_rgba(24,24,27,0.25)]',
             'transition-[transform,padding] duration-300 ease-in-out',
             isCollapsed ? 'p-0 overflow-hidden pointer-events-none' : 'p-6'
@@ -1137,31 +1144,40 @@ function GraphPage() {
               )}
               onPointerDown={handleResizeStart}
             >
-              <div className="mx-auto h-20 w-1.5 rounded-full bg-zinc-300 group-hover:bg-emerald-400/70 transition-colors" />
+              <div className="mx-auto h-20 w-1.5 rounded-full bg-slate-300 group-hover:bg-emerald-400/70 transition-colors" />
             </div>
           )}
-          <div className="h-full w-full rounded-2xl bg-transparent flex flex-col">
-            <div className="min-h-0 flex-1 overflow-y-auto pr-2">
-              <div className="mb-6">
-                <h3 className="text-xs font-semibold tracking-widest text-zinc-400 mb-3">
-                  IDENTIFIED MULING
-                </h3>
+          <div className="h-full w-full rounded-2xl bg-white flex flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-4 scrollbar-slim">
+              <div className="mb-8 px-1 space-y-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <div className="text-sm font-semibold tracking-wide text-emerald-700">
+                    IDENTIFIED MULING
+                  </div>
+                </div>
+                <div className="mb-4 h-px w-full bg-emerald-100" />
                 {analysisError && (
                   <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                     {analysisError}
                   </div>
                 )}
-              <div className="text-sm text-zinc-700">
-                <div className="font-semibold mb-2">Suspicion Scores</div>
+              <div className="text-sm text-slate-700">
+                <div className="flex items-center gap-2 text-base font-bold text-slate-900 mb-3">
+  <Activity className="h-4 w-4 text-amber-500" />
+  Suspicion Scores
+</div>
                 {suspiciousAccounts.length === 0 ? (
-                  <div className="text-zinc-400">None detected</div>
+                  <div className="text-slate-400">None detected</div>
                 ) : (
                     <ol className="list-decimal list-inside space-y-1">
                       {suspiciousAccounts.map((acc) => (
                         <li key={acc.account_id}>
                           <button
                             type="button"
-                            className="text-left hover:text-emerald-700"
+                            className="text-left hover:text-emerald-700 transition-colors"
                             onClick={() => {
                               const msg =
                                 suspicionExplanations[acc.account_id] ||
@@ -1169,15 +1185,18 @@ function GraphPage() {
                               alert(msg);
                             }}
                           >
-                            {acc.account_id} — {acc.suspicion_score.toFixed(1)}
+                            {acc.account_id} — <span className="text-red-600 font-semibold">{acc.suspicion_score.toFixed(1)}</span>
                           </button>
                         </li>
                       ))}
                     </ol>
                   )}
-                  <div className="mt-5 font-semibold">Rings</div>
+                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
+  <Network className="h-4 w-4 text-violet-500" />
+  Rings
+</div>
                   {fraudRings.filter((r) => r.pattern_type === 'cycle').length === 0 ? (
-                    <div className="text-zinc-400">None detected</div>
+                    <div className="text-slate-400">None detected</div>
                   ) : (
                     <ol className="list-decimal list-inside space-y-1">
                       {fraudRings
@@ -1189,7 +1208,7 @@ function GraphPage() {
                           <li key={`${ring}-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700"
+                              className="text-left hover:text-emerald-700 transition-colors"
                               onClick={() => {
                                 const members = ringMembers[ringId] || [];
                                 const memberSet = new Set(members);
@@ -1205,7 +1224,7 @@ function GraphPage() {
                             </button>
                             <button
                               type="button"
-                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              className="mt-0.5 text-slate-400 hover:text-slate-700 transition-colors"
                               onClick={() => {
                                 const members = ringMembers[ringId] || [];
                                 setConnectedNodesPopup({
@@ -1233,12 +1252,15 @@ function GraphPage() {
                       })}
                     </ol>
                   )}
-                  <div className="mt-6 font-semibold">Fraud Ring Summary</div>
+                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
+  <TableIcon className="h-4 w-4 text-slate-500" />
+  Fraud Ring Summary
+</div>
                   {fraudRings.length === 0 ? (
-                    <div className="text-zinc-400">None detected</div>
+                    <div className="text-slate-400">None detected</div>
                   ) : (
-                    <div className="mt-2 border border-zinc-200 rounded-lg overflow-hidden text-xs text-zinc-700">
-                      <div className="grid grid-cols-5 gap-2 bg-zinc-50 px-3 py-2 font-semibold">
+                    <div className="mt-3 border border-slate-200 rounded-xl overflow-hidden text-xs text-slate-700">
+                      <div className="grid grid-cols-5 gap-2 bg-slate-50 px-3 py-2 font-medium text-slate-600">
                         <div>Ring ID</div>
                         <div>Pattern</div>
                         <div>Members</div>
@@ -1246,31 +1268,44 @@ function GraphPage() {
                         <div>Accounts</div>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
-                        {fraudRings.map((r) => (
-                          <div key={r.ring_id} className="grid grid-cols-5 gap-2 px-3 py-2 border-t border-zinc-100">
-                            <div>{r.ring_id}</div>
-                            <div>{r.pattern_type}</div>
-                            <div>{r.member_accounts.length}</div>
-                            <div>{r.risk_score.toFixed(1)}</div>
-                            <div className="truncate" title={r.member_accounts.join(', ')}>
-                              {r.member_accounts.join(', ')}
+                        {fraudRings.map((r, idx) => {
+                          const isHighRisk = r.risk_score >= 80;
+                          return (
+                            <div
+                              key={r.ring_id}
+                              className={cn(
+                                'grid grid-cols-5 gap-2 px-3 py-2 border-t border-slate-100 transition-colors',
+                                idx % 2 === 1 && 'bg-slate-50',
+                                isHighRisk && 'bg-red-50 text-red-700'
+                              )}
+                            >
+                              <div className="font-medium">{r.ring_id}</div>
+                              <div>{r.pattern_type}</div>
+                              <div>{r.member_accounts.length}</div>
+                              <div>{r.risk_score.toFixed(1)}</div>
+                              <div className="truncate" title={r.member_accounts.join(', ')}>
+                                {r.member_accounts.join(', ')}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
-                <div className="mt-5 font-semibold">Smurfing</div>
-                <div className="mt-2 text-zinc-500 text-xs uppercase tracking-wide">Fan-in</div>
+                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
+  <Shuffle className="h-4 w-4 text-slate-500" />
+  Smurfing
+</div>
+                <div className="mt-2 text-slate-500 text-xs uppercase tracking-wide">Fan-in</div>
                     {fanInGroups.length === 0 ? (
-                      <div className="text-zinc-400">None detected</div>
+                      <div className="text-slate-400">None detected</div>
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {fanInGroups.map((item, idx) => (
                           <li key={`fanin-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700"
+                              className="text-left hover:text-emerald-700 transition-colors"
                               onClick={() => {
                                 const parts = item.split('←').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1292,7 +1327,7 @@ function GraphPage() {
                             </button>
                             <button
                               type="button"
-                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              className="mt-0.5 text-slate-400 hover:text-slate-700 transition-colors"
                               onClick={() => {
                                 const parts = item.split('←').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1322,16 +1357,16 @@ function GraphPage() {
                         ))}
                       </ol>
                     )}
-                <div className="mt-4 text-zinc-500 text-xs uppercase tracking-wide">Fan-out</div>
+                <div className="mt-4 text-slate-500 text-xs uppercase tracking-wide">Fan-out</div>
                     {fanOutGroups.length === 0 ? (
-                      <div className="text-zinc-400">None detected</div>
+                      <div className="text-slate-400">None detected</div>
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {fanOutGroups.map((item, idx) => (
                           <li key={`fanout-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700"
+                              className="text-left hover:text-emerald-700 transition-colors"
                               onClick={() => {
                                 const parts = item.split('→').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1353,7 +1388,7 @@ function GraphPage() {
                             </button>
                             <button
                               type="button"
-                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              className="mt-0.5 text-slate-400 hover:text-slate-700 transition-colors"
                               onClick={() => {
                                 const parts = item.split('→').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1383,16 +1418,19 @@ function GraphPage() {
                         ))}
                       </ol>
                     )}
-                <div className="mt-5 font-semibold">Layered Shell Networks</div>
+                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
+  <Layers className="h-4 w-4 text-slate-500" />
+  Layered Shell Networks
+</div>
                     {shellChains.length === 0 ? (
-                      <div className="text-zinc-400">None detected</div>
+                      <div className="text-slate-400">None detected</div>
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {shellChains.map((item, idx) => (
                           <li key={`shell-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700"
+                              className="text-left hover:text-emerald-700 transition-colors"
                               onClick={() => {
                                 const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
                                 const memberSet = new Set(nodes);
@@ -1414,7 +1452,7 @@ function GraphPage() {
                             </button>
                             <button
                               type="button"
-                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              className="mt-0.5 text-slate-400 hover:text-slate-700 transition-colors"
                               onClick={() => {
                                 const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
                                 setConnectedNodesPopup({
@@ -1444,7 +1482,7 @@ function GraphPage() {
               </div>
             </div>
             </div>
-            <div className="mt-auto pt-4 flex items-center justify-between text-xs text-zinc-500">
+            <div className="mt-auto pt-4 flex items-center justify-between text-xs text-slate-500">
               <div>
                 Time:{' '}
                 {analysisMs === null
@@ -1454,12 +1492,13 @@ function GraphPage() {
               <button
                 onClick={handleDownloadJson}
                 className={cn(
-                  'px-3 py-2 rounded-full text-xs font-semibold border border-zinc-200',
-                  'bg-white hover:bg-zinc-50',
-                  !analysisJson && 'opacity-50 cursor-not-allowed'
+                  'px-4 py-2 rounded-full text-xs font-medium',
+                  'bg-emerald-600 text-white shadow-md shadow-emerald-200/60 hover:bg-emerald-700 hover:shadow-emerald-300/70 transition-colors',
+                  !analysisJson && 'opacity-50 cursor-not-allowed shadow-none'
                 )}
                 disabled={!analysisJson}
               >
+                <Download className="h-4 w-4" />
                 Download JSON
               </button>
             </div>
@@ -1479,8 +1518,8 @@ function GraphPage() {
       <button
         onClick={toggleCollapse}
         className={cn(
-          'absolute top-6 right-6 z-10 px-3 py-2 rounded-full text-xs font-semibold border border-zinc-200',
-          'bg-white/90 backdrop-blur-md hover:bg-white'
+          'absolute top-6 right-6 z-10 px-3 py-2 rounded-full text-xs font-medium border border-slate-200',
+          'bg-white/90 backdrop-blur-md hover:bg-white transition-all'
         )}
       >
         {isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
@@ -1492,11 +1531,11 @@ function GraphPage() {
 
 function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-[#f9faf9] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-6">
       <div className="text-center">
-        <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">404</div>
-        <h1 className="text-3xl font-bold text-zinc-900 mb-2">Page not found</h1>
-        <p className="text-sm text-zinc-500">The page you are looking for doesn’t exist.</p>
+        <div className="text-xs font-medium tracking-widest text-slate-400 mb-2">404</div>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Page not found</h1>
+        <p className="text-sm text-slate-500">The page you are looking for doesn’t exist.</p>
       </div>
     </div>
   );
