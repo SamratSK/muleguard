@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "deploy": "npm run wasm:build && npm run build && npx gh-pages -d dist",
     "wasm:build": "cd wasm && wasm-pack build --target web --out-dir pkg"
   },
   "dependencies": {

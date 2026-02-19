@@ -1430,11 +1430,25 @@ function GraphPage() {
   );
 }
 
+
+function NotFoundPage() {
+  return (
+    <div className="min-h-screen bg-[#f9faf9] flex items-center justify-center px-6">
+      <div className="text-center">
+        <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">404</div>
+        <h1 className="text-3xl font-bold text-zinc-900 mb-2">Page not found</h1>
+        <p className="text-sm text-zinc-500">The page you are looking for doesn’t exist.</p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/graph" element={<GraphPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
