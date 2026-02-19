@@ -20,6 +20,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import cytoscape, { type Core } from 'cytoscape';
+import { useAnalysisStore } from './store';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -293,50 +294,47 @@ function GraphPage() {
   const [paneWidthPct, setPaneWidthPct] = useState(40);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [detectionSummary, setDetectionSummary] = useState({
-    rings: 0,
-    smurfing: 0,
-    layered: 0,
-  });
-  const [ringPaths, setRingPaths] = useState<string[]>([]);
-  const [fanInGroups, setFanInGroups] = useState<string[]>([]);
-  const [fanOutGroups, setFanOutGroups] = useState<string[]>([]);
-  const [shellChains, setShellChains] = useState<string[]>([]);
-  const [analysisMs, setAnalysisMs] = useState<number | null>(null);
-  const [analysisJson, setAnalysisJson] = useState<Record<string, unknown> | null>(null);
+  const analysisMs = useAnalysisStore((s) => s.analysisMs);
+  const setAnalysisMs = useAnalysisStore((s) => s.setAnalysisMs);
+  const analysisJson = useAnalysisStore((s) => s.analysisJson);
+  const setAnalysisJson = useAnalysisStore((s) => s.setAnalysisJson);
+  const analysisError = useAnalysisStore((s) => s.analysisError);
+  const setAnalysisError = useAnalysisStore((s) => s.setAnalysisError);
+  const detectionSummary = useAnalysisStore((s) => s.detectionSummary);
+  const setDetectionSummary = useAnalysisStore((s) => s.setDetectionSummary);
+  const ringPaths = useAnalysisStore((s) => s.ringPaths);
+  const setRingPaths = useAnalysisStore((s) => s.setRingPaths);
+  const fanInGroups = useAnalysisStore((s) => s.fanInGroups);
+  const setFanInGroups = useAnalysisStore((s) => s.setFanInGroups);
+  const fanOutGroups = useAnalysisStore((s) => s.fanOutGroups);
+  const setFanOutGroups = useAnalysisStore((s) => s.setFanOutGroups);
+  const shellChains = useAnalysisStore((s) => s.shellChains);
+  const setShellChains = useAnalysisStore((s) => s.setShellChains);
+  const ringMembers = useAnalysisStore((s) => s.ringMembers);
+  const setRingMembers = useAnalysisStore((s) => s.setRingMembers);
+  const suspiciousAccounts = useAnalysisStore((s) => s.suspiciousAccounts);
+  const setSuspiciousAccounts = useAnalysisStore((s) => s.setSuspiciousAccounts);
+  const suspicionExplanations = useAnalysisStore((s) => s.suspicionExplanations);
+  const setSuspicionExplanations = useAnalysisStore((s) => s.setSuspicionExplanations);
+  const nodeDetails = useAnalysisStore((s) => s.nodeDetails);
+  const setNodeDetails = useAnalysisStore((s) => s.setNodeDetails);
+  const edgeDetails = useAnalysisStore((s) => s.edgeDetails);
+  const setEdgeDetails = useAnalysisStore((s) => s.setEdgeDetails);
+  const selectedNodeId = useAnalysisStore((s) => s.selectedNodeId);
+  const setSelectedNodeId = useAnalysisStore((s) => s.setSelectedNodeId);
+  const selectedEdgeId = useAnalysisStore((s) => s.selectedEdgeId);
+  const setSelectedEdgeId = useAnalysisStore((s) => s.setSelectedEdgeId);
+  const pinnedInfo = useAnalysisStore((s) => s.pinnedNode);
+  const setPinnedInfo = useAnalysisStore((s) => s.setPinnedNode);
+  const pinnedEdgeInfo = useAnalysisStore((s) => s.pinnedEdge);
+  const setPinnedEdgeInfo = useAnalysisStore((s) => s.setPinnedEdge);
+  const connectedNodesPopup = useAnalysisStore((s) => s.connectedNodesPopup);
+  const setConnectedNodesPopup = useAnalysisStore((s) => s.setConnectedNodesPopup);
+  const miniGraphRef = useRef<HTMLDivElement | null>(null);
+  const miniCyRef = useRef<Core | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const analysisStartRef = useRef<number | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [suspiciousAccounts, setSuspiciousAccounts] = useState<
-    { account_id: string; suspicion_score: number; detected_patterns: string[]; ring_id: string }[]
-  >([]);
-  const [suspicionExplanations, setSuspicionExplanations] = useState<Record<string, string>>({});
-  const [nodeDetails, setNodeDetails] = useState<
-    Record<
-      string,
-      {
-        name: string;
-        suspicion_score: number;
-        net_balance: number;
-        credits: number;
-        debits: number;
-        rings: string[];
-        smurfs: string[];
-        shells: string[];
-        rings_count: number;
-        first_txn: string | null;
-        last_txn: string | null;
-      }
-    >
-  >({});
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [pinnedInfo, setPinnedInfo] = useState<{ id: string; x: number; y: number } | null>(null);
-  const [edgeDetails, setEdgeDetails] = useState<
-    Record<string, { net: number; count: number; first_txn: string | null; last_txn: string | null }>
-  >({});
-  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  const [pinnedEdgeInfo, setPinnedEdgeInfo] = useState<{ id: string; x: number; y: number } | null>(null);
-  const [ringMembers, setRingMembers] = useState<Record<string, string[]>>({});
+  // analysis state is centralized in the store
   const isResizingRef = useRef(false);
   const containerWrapRef = useRef<HTMLDivElement | null>(null);
   const paneRef = useRef<HTMLDivElement | null>(null);
@@ -460,7 +458,7 @@ function GraphPage() {
     const loadCsv = async () => {
       const startedAt = performance.now();
       try {
-        const res = await fetch('/abc_30.csv');
+        const res = await fetch('/abc_10k.csv');
         if (!res.ok) return;
         const text = await res.text();
         setAnalysisMs(null);
@@ -490,7 +488,7 @@ function GraphPage() {
         }
         const rows = results.flatMap((r) => r.rows || []);
 
-        worker.postMessage({ rows, source: 'abc_30.csv' });
+        worker.postMessage({ rows, source: 'abc_10k.csv' });
       } catch {
         // Ignore CSV load errors for now.
       }
@@ -558,6 +556,13 @@ function GraphPage() {
         cy.edges().removeClass('selected-edge');
         setSelectedEdgeId(null);
         setPinnedEdgeInfo(null);
+        setConnectedNodesPopup(null);
+      });
+      cy.on('dblclick', 'node', (evt) => {
+        const id = evt.target.id();
+        const node = evt.target;
+        const neighbors = node.connectedEdges().connectedNodes().map((n) => n.id()).sort();
+        setConnectedNodesPopup({ id, title: `Connections for ${id}`, nodes: neighbors, x: 0, y: 0 });
       });
       cy.on('tap', 'edge', (evt) => {
         const edge = evt.target;
@@ -582,6 +587,7 @@ function GraphPage() {
           cy.edges().removeClass('selected-edge');
           setSelectedEdgeId(null);
           setPinnedEdgeInfo(null);
+          setConnectedNodesPopup(null);
         }
       });
       cy.nodes().selectify();
@@ -630,6 +636,7 @@ function GraphPage() {
       worker.terminate();
       workerRef.current = null;
       cy.removeListener('tap');
+      cy.removeListener('dblclick');
       cy.destroy();
       cyRef.current = null;
     };
@@ -671,6 +678,77 @@ function GraphPage() {
     widthPctRef.current = paneWidthPct;
   }, [isCollapsed, paneWidthPct]);
 
+  useEffect(() => {
+    if (!connectedNodesPopup || !miniGraphRef.current) return;
+    const cy = cytoscape({
+      container: miniGraphRef.current,
+      elements: [],
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': '#16a34a',
+            'border-color': '#0f766e',
+            'border-width': 1,
+            color: '#0f172a',
+            label: 'data(label)',
+            'font-size': 10,
+            'text-background-color': '#ffffff',
+            'text-background-opacity': 0.7,
+            'text-background-padding': '2',
+            'text-valign': 'bottom',
+            'text-halign': 'center',
+          },
+        },
+        {
+          selector: 'node.center',
+          style: {
+            'border-width': 3,
+            'border-color': '#ef4444',
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            width: 1.4,
+            'line-color': '#64748b',
+            'target-arrow-color': '#64748b',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+          },
+        },
+      ],
+      layout: { name: 'grid', animate: false },
+    });
+
+    const cyMain = cyRef.current;
+    const nodeIds = new Set(connectedNodesPopup.nodes);
+    const nodes = Array.from(nodeIds).map((id) => ({
+      data: { id, label: id },
+      classes: id === connectedNodesPopup.id ? 'center' : '',
+    }));
+
+    const edges: { data: { id: string; source: string; target: string } }[] = [];
+    if (cyMain) {
+      cyMain.edges().forEach((e) => {
+        const s = e.data('source');
+        const t = e.data('target');
+        if (nodeIds.has(s) && nodeIds.has(t)) {
+          edges.push({ data: { id: `${s}→${t}`, source: s, target: t } });
+        }
+      });
+    }
+
+    cy.add([...nodes, ...edges]);
+    cy.layout({ name: 'grid', animate: false }).run();
+    miniCyRef.current = cy;
+
+    return () => {
+      cy.destroy();
+      miniCyRef.current = null;
+    };
+  }, [connectedNodesPopup]);
+
   const handleResizeStart = (event: React.PointerEvent) => {
     isResizingRef.current = true;
     setIsResizing(true);
@@ -702,7 +780,8 @@ function GraphPage() {
 
   const selectNodesAndEdges = (
     memberSet: Set<string>,
-    edgeMatch?: (source: string, target: string) => boolean
+    edgeMatch?: (source: string, target: string) => boolean,
+    zoom?: boolean
   ) => {
     const cy = cyRef.current;
     if (!cy) return;
@@ -727,7 +806,7 @@ function GraphPage() {
         selected.merge(e);
       }
     });
-    if (selected.length > 0) {
+    if (zoom && selected.length > 0) {
       cy.animate(
         {
           fit: {
@@ -738,6 +817,38 @@ function GraphPage() {
         { duration: 400 }
       );
     }
+  };
+
+  const computeGroupStats = (
+    members: string[],
+    edgeMatch?: (source: string, target: string) => boolean
+  ) => {
+    const memberSet = new Set(members);
+    let totalAmount = 0;
+    let edgeCount = 0;
+    Object.entries(edgeDetails).forEach(([key, detail]) => {
+      const [s, t] = key.split('→');
+      if (!s || !t) return;
+      const inSet = memberSet.has(s) && memberSet.has(t);
+      if (edgeMatch ? edgeMatch(s, t) : inSet) {
+        totalAmount += detail.net;
+        edgeCount += detail.count;
+      }
+    });
+    let mostSuspicious: { id: string; score: number } | null = null;
+    members.forEach((m) => {
+      const d = nodeDetails[m];
+      if (!d) return;
+      if (!mostSuspicious || d.suspicion_score > mostSuspicious.score) {
+        mostSuspicious = { id: m, score: d.suspicion_score };
+      }
+    });
+    return {
+      nodeCount: members.length,
+      totalAmount: Number(totalAmount.toFixed(2)),
+      transactionCount: edgeCount,
+      mostSuspicious,
+    };
   };
 
   return (
@@ -816,6 +927,98 @@ function GraphPage() {
               )}
             </div>
           )}
+          {connectedNodesPopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+              <div className="w-[900px] max-w-[95vw] h-[80vh] rounded-2xl border border-zinc-200 bg-white shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200">
+                  <div className="text-sm font-semibold text-zinc-900">
+                    {connectedNodesPopup.title}
+                  </div>
+                  <button
+                    type="button"
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-50"
+                    onClick={() => setConnectedNodesPopup(null)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex h-[calc(80vh-52px-56px)]">
+                  <div className="flex-1 bg-[#f9faf9]">
+                    <div ref={miniGraphRef} className="h-full w-full" />
+                  </div>
+                  <div className="w-[320px] border-l border-zinc-200 p-4 overflow-y-auto">
+                    {nodeDetails[connectedNodesPopup.id] && (
+                      <>
+                        <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                          NODE DETAILS
+                        </div>
+                        <div className="font-semibold text-zinc-900">
+                          {nodeDetails[connectedNodesPopup.id].name} (SS:{' '}
+                          {nodeDetails[connectedNodesPopup.id].suspicion_score.toFixed(1)}%)
+                        </div>
+                        <div className="mt-1">
+                          Net balance: {nodeDetails[connectedNodesPopup.id].net_balance}
+                        </div>
+                        <div>Credits: {nodeDetails[connectedNodesPopup.id].credits}</div>
+                        <div>Debits: {nodeDetails[connectedNodesPopup.id].debits}</div>
+                        {nodeDetails[connectedNodesPopup.id].first_txn && (
+                          <div className="mt-1">
+                            Time from:{' '}
+                            {new Date(nodeDetails[connectedNodesPopup.id].first_txn).toLocaleString()}
+                          </div>
+                        )}
+                        {nodeDetails[connectedNodesPopup.id].last_txn && (
+                          <div>
+                            Time to:{' '}
+                            {new Date(nodeDetails[connectedNodesPopup.id].last_txn).toLocaleString()}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {(() => {
+                      const stats = computeGroupStats(connectedNodesPopup.nodes);
+                      return (
+                        <div className="mt-4">
+                          <div className="text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                            GROUP STATS
+                          </div>
+                          <div>Nodes involved: {stats.nodeCount}</div>
+                          <div>Total amount: {stats.totalAmount}</div>
+                          <div>Transactions: {stats.transactionCount}</div>
+                          {stats.mostSuspicious && (
+                            <div>
+                              Most suspicious: {stats.mostSuspicious.id} ({stats.mostSuspicious.score.toFixed(1)}%)
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    <div className="mt-4 text-xs font-semibold tracking-widest text-zinc-400 mb-2">
+                      CONNECTED NODES
+                    </div>
+                    {connectedNodesPopup.nodes.length === 0 ? (
+                      <div className="text-zinc-400">No connections</div>
+                    ) : (
+                      <ul className="space-y-1 text-sm text-zinc-700">
+                        {connectedNodesPopup.nodes.map((n) => (
+                          <li key={n}>{n}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end px-5 py-3 border-t border-zinc-200 bg-white">
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-full text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-50"
+                    onClick={() => setConnectedNodesPopup(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div
@@ -866,11 +1069,11 @@ function GraphPage() {
                     {analysisError}
                   </div>
                 )}
-                <div className="text-sm text-zinc-700">
-                  <div className="font-semibold mb-2">Suspicion Scores</div>
-                  {suspiciousAccounts.length === 0 ? (
-                    <div className="text-zinc-400">None detected</div>
-                  ) : (
+              <div className="text-sm text-zinc-700">
+                <div className="font-semibold mb-2">Suspicion Scores</div>
+                {suspiciousAccounts.length === 0 ? (
+                  <div className="text-zinc-400">None detected</div>
+                ) : (
                     <ol className="list-decimal list-inside space-y-1">
                       {suspiciousAccounts.map((acc) => (
                         <li key={acc.account_id}>
@@ -898,26 +1101,47 @@ function GraphPage() {
                       {ringPaths.map((ring, idx) => {
                         const ringId = `RING_${String(idx + 1).padStart(3, '0')}`;
                         return (
-                          <li key={`${ring}-${idx}`}>
+                          <li key={`${ring}-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
                               className="text-left hover:text-emerald-700"
                               onClick={() => {
                                 const members = ringMembers[ringId] || [];
-                                const cy = cyRef.current;
-                                if (!cy) return;
-                                cy.nodes().removeClass('selected-node');
-                                cy.edges().removeClass('selected-edge');
                                 const memberSet = new Set(members);
-                                members.forEach((m) => cy.getElementById(m).addClass('selected-node'));
-                                cy.edges().forEach((e) => {
-                                  const s = e.data('source');
-                                  const t = e.data('target');
-                                  if (memberSet.has(s) && memberSet.has(t)) e.addClass('selected-edge');
-                                });
+                                selectNodesAndEdges(memberSet, undefined, false);
+                              }}
+                              onDoubleClick={() => {
+                                const members = ringMembers[ringId] || [];
+                                const memberSet = new Set(members);
+                                selectNodesAndEdges(memberSet, undefined, true);
                               }}
                             >
                               {ring}
+                            </button>
+                            <button
+                              type="button"
+                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => {
+                                const members = ringMembers[ringId] || [];
+                                setConnectedNodesPopup({
+                                  id: ringId,
+                                  title: `Ring ${ringId}`,
+                                  nodes: members,
+                                  x: 0,
+                                  y: 0,
+                                });
+                              }}
+                              aria-label="Open ring graph"
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M14 5h5v5M9 15l10-10M19 14v5H5V5h5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </li>
                         );
@@ -931,7 +1155,7 @@ function GraphPage() {
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {fanInGroups.map((item, idx) => (
-                          <li key={`fanin-${idx}`}>
+                          <li key={`fanin-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
                               className="text-left hover:text-emerald-700"
@@ -941,10 +1165,46 @@ function GraphPage() {
                                 const receiver = parts[0];
                                 const senders = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
                                 const memberSet = new Set([receiver, ...senders]);
-                                selectNodesAndEdges(memberSet, (s, t) => senders.includes(s) && t === receiver);
+                                selectNodesAndEdges(memberSet, (s, t) => senders.includes(s) && t === receiver, false);
+                              }}
+                              onDoubleClick={() => {
+                                const parts = item.split('←').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const receiver = parts[0];
+                                const senders = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                const memberSet = new Set([receiver, ...senders]);
+                                selectNodesAndEdges(memberSet, (s, t) => senders.includes(s) && t === receiver, true);
                               }}
                             >
                               {item}
+                            </button>
+                            <button
+                              type="button"
+                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => {
+                                const parts = item.split('←').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const receiver = parts[0];
+                                const senders = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                setConnectedNodesPopup({
+                                  id: `SMURF_IN_${idx + 1}`,
+                                  title: `Smurfing Fan-In ${idx + 1}`,
+                                  nodes: [receiver, ...senders],
+                                  x: 0,
+                                  y: 0,
+                                });
+                              }}
+                              aria-label="Open smurfing graph"
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M14 5h5v5M9 15l10-10M19 14v5H5V5h5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </li>
                         ))}
@@ -956,7 +1216,7 @@ function GraphPage() {
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {fanOutGroups.map((item, idx) => (
-                          <li key={`fanout-${idx}`}>
+                          <li key={`fanout-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
                               className="text-left hover:text-emerald-700"
@@ -966,10 +1226,46 @@ function GraphPage() {
                                 const sender = parts[0];
                                 const receivers = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
                                 const memberSet = new Set([sender, ...receivers]);
-                                selectNodesAndEdges(memberSet, (s, t) => s === sender && receivers.includes(t));
+                                selectNodesAndEdges(memberSet, (s, t) => s === sender && receivers.includes(t), false);
+                              }}
+                              onDoubleClick={() => {
+                                const parts = item.split('→').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const sender = parts[0];
+                                const receivers = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                const memberSet = new Set([sender, ...receivers]);
+                                selectNodesAndEdges(memberSet, (s, t) => s === sender && receivers.includes(t), true);
                               }}
                             >
                               {item}
+                            </button>
+                            <button
+                              type="button"
+                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => {
+                                const parts = item.split('→').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const sender = parts[0];
+                                const receivers = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                setConnectedNodesPopup({
+                                  id: `SMURF_OUT_${idx + 1}`,
+                                  title: `Smurfing Fan-Out ${idx + 1}`,
+                                  nodes: [sender, ...receivers],
+                                  x: 0,
+                                  y: 0,
+                                });
+                              }}
+                              aria-label="Open smurfing graph"
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M14 5h5v5M9 15l10-10M19 14v5H5V5h5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </li>
                         ))}
@@ -981,7 +1277,7 @@ function GraphPage() {
                     ) : (
                       <ol className="list-decimal list-inside space-y-1">
                         {shellChains.map((item, idx) => (
-                          <li key={`shell-${idx}`}>
+                          <li key={`shell-${idx}`} className="flex items-start justify-between gap-2">
                             <button
                               type="button"
                               className="text-left hover:text-emerald-700"
@@ -991,10 +1287,43 @@ function GraphPage() {
                                 selectNodesAndEdges(memberSet, (s, t) => {
                                   const i = nodes.indexOf(s);
                                   return i !== -1 && nodes[i + 1] === t;
-                                });
+                                }, false);
+                              }}
+                              onDoubleClick={() => {
+                                const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
+                                const memberSet = new Set(nodes);
+                                selectNodesAndEdges(memberSet, (s, t) => {
+                                  const i = nodes.indexOf(s);
+                                  return i !== -1 && nodes[i + 1] === t;
+                                }, true);
                               }}
                             >
                               {item}
+                            </button>
+                            <button
+                              type="button"
+                              className="mt-0.5 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => {
+                                const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
+                                setConnectedNodesPopup({
+                                  id: `SHELL_${idx + 1}`,
+                                  title: `Shell Chain ${idx + 1}`,
+                                  nodes,
+                                  x: 0,
+                                  y: 0,
+                                });
+                              }}
+                              aria-label="Open shell graph"
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path
+                                  d="M14 5h5v5M9 15l10-10M19 14v5H5V5h5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </li>
                         ))}

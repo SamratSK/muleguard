@@ -333,7 +333,8 @@ pub fn detect_shell_chains(
                             break;
                         }
                     }
-                    if ok {
+                    let last_is_shell = is_shell(*path.last().unwrap() as usize);
+                    if ok && !last_is_shell {
                         for v in path.iter() {
                             results.push(*v);
                         }

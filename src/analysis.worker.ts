@@ -314,14 +314,11 @@ ctx.onmessage = async (event: MessageEvent<MessageIn>) => {
               else if (idx === 1) stage2.add(nodeId);
               else stage3plus.add(nodeId);
             });
-            const minNode = [...current].sort()[0];
-            if (current[0] === minNode) {
-              const chainDisplay = `${current.join(' → ')}`;
-              if (!shellSet.has(chainDisplay)) {
-                shellSet.add(chainDisplay);
-                shellList.push(chainDisplay);
-                shellChains.push([...current]);
-              }
+            const chainDisplay = `${current.join(' → ')}`;
+            if (!shellSet.has(chainDisplay)) {
+              shellSet.add(chainDisplay);
+              shellList.push(chainDisplay);
+              shellChains.push([...current]);
             }
           }
         }
