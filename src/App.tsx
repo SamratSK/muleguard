@@ -1165,19 +1165,19 @@ function GraphPage() {
                   </div>
                 )}
               <div className="text-sm text-slate-700">
-                <div className="flex items-center gap-2 text-base font-bold text-slate-900 mb-3">
-  <Activity className="h-4 w-4 text-amber-500" />
-  Suspicion Scores
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 mb-4 tracking-medium">
+  <Activity className="h-5 w-5 text-amber-500" />
+  <span>Suspicion Scores</span>
 </div>
                 {suspiciousAccounts.length === 0 ? (
-                  <div className="text-slate-400">None detected</div>
+                  <div className="text-slate-400 text-sm py-2">None detected</div>
                 ) : (
-                    <ol className="list-decimal list-inside space-y-1">
+                    <ol className="list-decimal list-inside space-y-2">
                       {suspiciousAccounts.map((acc) => (
-                        <li key={acc.account_id}>
+                        <li key={acc.account_id} className="text-slate-700">
                           <button
                             type="button"
-                            className="text-left hover:text-emerald-700 transition-colors"
+                            className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                             onClick={() => {
                               const msg =
                                 suspicionExplanations[acc.account_id] ||
@@ -1191,24 +1191,24 @@ function GraphPage() {
                       ))}
                     </ol>
                   )}
-                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
-  <Network className="h-4 w-4 text-violet-500" />
-  Rings
+                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-900 tracking-medium">
+  <Network className="h-5 w-5 text-violet-500" />
+  <span>Rings</span>
 </div>
                   {fraudRings.filter((r) => r.pattern_type === 'cycle').length === 0 ? (
-                    <div className="text-slate-400">None detected</div>
+                    <div className="text-slate-400 text-sm py-2">None detected</div>
                   ) : (
-                    <ol className="list-decimal list-inside space-y-1">
+                    <ol className="list-decimal list-inside space-y-3 mt-3">
                       {fraudRings
                         .filter((r) => r.pattern_type === 'cycle')
                         .map((r, idx) => {
                         const ringId = r.ring_id;
                         const ring = ringDisplays[ringId] || r.member_accounts.join(' → ');
                         return (
-                          <li key={`${ring}-${idx}`} className="flex items-start justify-between gap-2">
+                          <li key={`${ring}-${idx}`} className="flex items-start justify-between gap-2 text-slate-700 py-1.5">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700 transition-colors"
+                              className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                               onClick={() => {
                                 const members = ringMembers[ringId] || [];
                                 const memberSet = new Set(members);
@@ -1252,15 +1252,15 @@ function GraphPage() {
                       })}
                     </ol>
                   )}
-                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
-  <TableIcon className="h-4 w-4 text-slate-500" />
-  Fraud Ring Summary
+                  <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-900 tracking-medium">
+  <TableIcon className="h-5 w-5 text-slate-500" />
+  <span>Fraud Ring Summary</span>
 </div>
                   {fraudRings.length === 0 ? (
-                    <div className="text-slate-400">None detected</div>
+                    <div className="text-slate-400 text-sm py-2">None detected</div>
                   ) : (
-                    <div className="mt-3 border border-slate-200 rounded-xl overflow-hidden text-xs text-slate-700">
-                      <div className="grid grid-cols-5 gap-2 bg-slate-50 px-3 py-2 font-medium text-slate-600">
+                    <div className="mt-4 border border-slate-200 rounded-lg overflow-hidden text-xs text-slate-700">
+                      <div className="grid grid-cols-5 gap-2 bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b border-slate-200">
                         <div>Ring ID</div>
                         <div>Pattern</div>
                         <div>Members</div>
@@ -1274,12 +1274,12 @@ function GraphPage() {
                             <div
                               key={r.ring_id}
                               className={cn(
-                                'grid grid-cols-5 gap-2 px-3 py-2 border-t border-slate-100 transition-colors',
-                                idx % 2 === 1 && 'bg-slate-50',
-                                isHighRisk && 'bg-red-50 text-red-700'
+                                'grid grid-cols-5 gap-2 px-4 py-3 border-t border-slate-100 transition-colors',
+                                idx % 2 === 1 && 'bg-slate-50/50',
+                                isHighRisk && 'bg-red-50/80 text-red-700'
                               )}
                             >
-                              <div className="font-medium">{r.ring_id}</div>
+                              <div className="font-semibold text-red-600">{r.ring_id}</div>
                               <div>{r.pattern_type}</div>
                               <div>{r.member_accounts.length}</div>
                               <div>{r.risk_score.toFixed(1)}</div>
@@ -1292,20 +1292,20 @@ function GraphPage() {
                       </div>
                     </div>
                   )}
-                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
-  <Shuffle className="h-4 w-4 text-slate-500" />
-  Smurfing
+                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-900 tracking-medium">
+  <Shuffle className="h-5 w-5 text-slate-500" />
+  <span>Smurfing</span>
 </div>
-                <div className="mt-2 text-slate-500 text-xs uppercase tracking-wide">Fan-in</div>
+                <div className="mt-4 text-slate-500 text-xs uppercase tracking-wider font-medium">Fan-in</div>
                     {fanInGroups.length === 0 ? (
-                      <div className="text-slate-400">None detected</div>
+                      <div className="text-slate-400 text-sm py-2">None detected</div>
                     ) : (
-                      <ol className="list-decimal list-inside space-y-1">
+                      <ol className="list-decimal list-inside space-y-2 mt-2">
                         {fanInGroups.map((item, idx) => (
-                          <li key={`fanin-${idx}`} className="flex items-start justify-between gap-2">
+                          <li key={`fanin-${idx}`} className="flex items-start justify-between gap-2 text-slate-700">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700 transition-colors"
+                              className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                               onClick={() => {
                                 const parts = item.split('←').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1357,16 +1357,16 @@ function GraphPage() {
                         ))}
                       </ol>
                     )}
-                <div className="mt-4 text-slate-500 text-xs uppercase tracking-wide">Fan-out</div>
+                <div className="mt-5 text-slate-500 text-xs uppercase tracking-wider font-medium">Fan-out</div>
                     {fanOutGroups.length === 0 ? (
-                      <div className="text-slate-400">None detected</div>
+                      <div className="text-slate-400 text-sm py-2">None detected</div>
                     ) : (
-                      <ol className="list-decimal list-inside space-y-1">
+                      <ol className="list-decimal list-inside space-y-2 mt-2">
                         {fanOutGroups.map((item, idx) => (
-                          <li key={`fanout-${idx}`} className="flex items-start justify-between gap-2">
+                          <li key={`fanout-${idx}`} className="flex items-start justify-between gap-2 text-slate-700">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700 transition-colors"
+                              className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                               onClick={() => {
                                 const parts = item.split('→').map((p) => p.trim());
                                 if (parts.length !== 2) return;
@@ -1418,19 +1418,19 @@ function GraphPage() {
                         ))}
                       </ol>
                     )}
-                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-base font-bold text-slate-900">
-  <Layers className="h-4 w-4 text-slate-500" />
-  Layered Shell Networks
+                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-900 tracking-medium">
+  <Layers className="h-5 w-5 text-slate-500" />
+  <span>Layered Shell Networks</span>
 </div>
                     {shellChains.length === 0 ? (
-                      <div className="text-slate-400">None detected</div>
+                      <div className="text-slate-400 text-sm py-2">None detected</div>
                     ) : (
-                      <ol className="list-decimal list-inside space-y-1">
+                      <ol className="list-decimal list-inside space-y-3 mt-3">
                         {shellChains.map((item, idx) => (
-                          <li key={`shell-${idx}`} className="flex items-start justify-between gap-2">
+                          <li key={`shell-${idx}`} className="flex items-start justify-between gap-2 text-slate-700 py-1.5">
                             <button
                               type="button"
-                              className="text-left hover:text-emerald-700 transition-colors"
+                              className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                               onClick={() => {
                                 const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
                                 const memberSet = new Set(nodes);
@@ -1482,7 +1482,7 @@ function GraphPage() {
               </div>
             </div>
             </div>
-            <div className="mt-auto pt-4 flex items-center justify-between text-xs text-slate-500">
+            <div className="mt-auto pt-6 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
               <div>
                 Time:{' '}
                 {analysisMs === null
@@ -1492,7 +1492,7 @@ function GraphPage() {
               <button
                 onClick={handleDownloadJson}
                 className={cn(
-                  'px-4 py-2 rounded-full text-xs font-medium',
+                  'flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium',
                   'bg-emerald-600 text-white shadow-md shadow-emerald-200/60 hover:bg-emerald-700 hover:shadow-emerald-300/70 transition-colors',
                   !analysisJson && 'opacity-50 cursor-not-allowed shadow-none'
                 )}
