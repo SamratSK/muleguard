@@ -40,6 +40,7 @@ type AnalysisState = {
   analysisMs: number | null;
   analysisError: string | null;
   analysisJson: Record<string, unknown> | null;
+  csvText: string | null;
   suspiciousAccounts: SuspiciousAccount[];
   suspicionExplanations: Record<string, string>;
   nodeDetails: Record<string, NodeDetail>;
@@ -52,6 +53,7 @@ type AnalysisState = {
   setAnalysisMs: (ms: number | null) => void;
   setAnalysisError: (msg: string | null) => void;
   setAnalysisJson: (payload: Record<string, unknown> | null) => void;
+  setCsvText: (text: string | null) => void;
   setDetectionSummary: (summary: { rings: number; smurfing: number; layered: number }) => void;
   setRingPaths: (paths: string[]) => void;
   setFanInGroups: (groups: string[]) => void;
@@ -83,6 +85,7 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   analysisMs: null,
   analysisError: null,
   analysisJson: null,
+  csvText: null,
   suspiciousAccounts: [],
   suspicionExplanations: {},
   nodeDetails: {},
@@ -95,6 +98,7 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   setAnalysisMs: (analysisMs) => set({ analysisMs }),
   setAnalysisError: (analysisError) => set({ analysisError }),
   setAnalysisJson: (analysisJson) => set({ analysisJson }),
+  setCsvText: (csvText) => set({ csvText }),
   setDetectionSummary: (detectionSummary) => set({ detectionSummary }),
   setRingPaths: (ringPaths) => set({ ringPaths }),
   setFanInGroups: (fanInGroups) => set({ fanInGroups }),

@@ -21,10 +21,36 @@ type MessageIn = {
   source?: string;
 };
 
+const splitCsvLine = (line: string): string[] => {
+  const cells: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      cells.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  cells.push(current);
+  return cells;
+};
+
 const parseCsv = (text: string): CsvRow[] => {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map((h) => h.trim());
+  const headers = splitCsvLine(lines[0]).map((h) => h.trim());
   const senderIdx = headers.indexOf('sender_id');
   const receiverIdx = headers.indexOf('receiver_id');
   const idIdx = headers.indexOf('transaction_id');
@@ -34,7 +60,7 @@ const parseCsv = (text: string): CsvRow[] => {
   if (senderIdx === -1 || receiverIdx === -1) return [];
 
   return lines.slice(1).map((line) => {
-    const cells = line.split(',').map((c) => c.trim());
+    const cells = splitCsvLine(line).map((c) => c.trim());
     return {
       transaction_id: cells[idIdx] ?? '',
       sender_id: cells[senderIdx] ?? '',

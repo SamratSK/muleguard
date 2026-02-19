@@ -34,6 +34,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 function HomePage() {
+  const setCsvText = useAnalysisStore((s) => s.setCsvText);
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,15 +67,16 @@ function HomePage() {
     multiple: false,
   } as any);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!file) return;
     setIsAnalyzing(true);
-    // Simulate analysis
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      alert('Analysis complete (Demo Mode). In a real app, this would process the CSV data.');
+    try {
+      const text = await file.text();
+      setCsvText(text);
       navigate('/graph');
-    }, 10);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -303,9 +305,13 @@ function GraphPage() {
   const [isResizing, setIsResizing] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ id: string; x: number; y: number } | null>(null);
   const [zoomPct, setZoomPct] = useState(100);
+  const [suspicionDialog, setSuspicionDialog] = useState<{ title: string; body: string } | null>(
+    null
+  );
   const analysisMs = useAnalysisStore((s) => s.analysisMs);
   const setAnalysisMs = useAnalysisStore((s) => s.setAnalysisMs);
   const analysisJson = useAnalysisStore((s) => s.analysisJson);
+  const csvText = useAnalysisStore((s) => s.csvText);
   const setAnalysisJson = useAnalysisStore((s) => s.setAnalysisJson);
   const analysisError = useAnalysisStore((s) => s.analysisError);
   const setAnalysisError = useAnalysisStore((s) => s.setAnalysisError);
@@ -474,9 +480,13 @@ function GraphPage() {
     const loadCsv = async () => {
       const startedAt = performance.now();
       try {
-        const res = await fetch('abc_30.csv');
-        if (!res.ok) return;
-        const text = await res.text();
+        const text = csvText ?? (await (async () => {
+          const res = await fetch('abc_30.csv');
+          if (!res.ok) {
+            throw new Error(`Failed to load sample CSV: ${res.status}`);
+          }
+          return res.text();
+        })());
         setAnalysisMs(null);
         setAnalysisError(null);
         analysisStartRef.current = startedAt;
@@ -504,9 +514,9 @@ function GraphPage() {
         }
         const rows = results.flatMap((r) => r.rows || []);
 
-        worker.postMessage({ rows, source: 'abc_30.csv' });
+        worker.postMessage({ rows, source: csvText ? 'upload.csv' : 'abc_30.csv' });
       } catch {
-        // Ignore CSV load errors for now.
+        setAnalysisError('Failed to load CSV for analysis.');
       }
     };
 
@@ -558,8 +568,20 @@ function GraphPage() {
           },
         })),
       ]);
-      const useFastLayout = edges.length > 5000 || nodes.length > 3000;
-      cy.layout({ name: useFastLayout ? 'grid' : 'cose', animate: false }).run();
+      const useCose = nodes.length <= 400 && edges.length <= 800;
+      const layout = cy.layout({ name: useCose ? 'cose' : 'grid', animate: false });
+      layout.run();
+      if (useCose) {
+        const timeoutId = window.setTimeout(() => {
+          if (layout.running()) {
+            layout.stop();
+            cy.layout({ name: 'grid', animate: false }).run();
+          }
+        }, 2000);
+        if ((layout as any).on) {
+          (layout as any).on('layoutstop', () => window.clearTimeout(timeoutId));
+        }
+      }
 
       cy.removeListener('tap');
       cy.on('tap', 'node', (evt) => {
@@ -626,7 +648,12 @@ function GraphPage() {
       setFanInGroups(smurfing.fanIn);
       setFanOutGroups(smurfing.fanOut);
       setShellChains(layered);
-      setAnalysisJson(analysisPayload);
+      const exactPayload = {
+        suspicious_accounts: analysisPayload.suspicious_accounts || [],
+        fraud_rings: analysisPayload.fraud_rings || [],
+        summary: analysisPayload.summary || {},
+      };
+      setAnalysisJson(exactPayload);
       setSuspiciousAccounts(analysisPayload.suspicious_accounts || []);
       setSuspicionExplanations(analysisPayload.suspicion_explanations || {});
       setNodeDetails(analysisPayload.node_details || {});
@@ -666,7 +693,7 @@ function GraphPage() {
       cy.destroy();
       cyRef.current = null;
     };
-  }, []);
+  }, [csvText]);
 
   const handleResizeMove = (event: React.PointerEvent) => {
     if (!isResizingRef.current || !containerWrapRef.current || !paneRef.current) return;
@@ -818,6 +845,22 @@ function GraphPage() {
     a.download = 'muling-analysis.json';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const selectNodeById = (id: string) => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    const node = cy.getElementById(id);
+    if (!node || node.empty()) return;
+    cy.nodes().removeClass('selected-node');
+    node.addClass('selected-node');
+    const pos = node.renderedPosition();
+    setSelectedNodeId(id);
+    setPinnedInfo({ id, x: pos.x, y: pos.y });
+    cy.edges().removeClass('selected-edge');
+    setSelectedEdgeId(null);
+    setPinnedEdgeInfo(null);
+    setConnectedNodesPopup(null);
   };
 
   const selectNodesAndEdges = (
@@ -1108,6 +1151,36 @@ function GraphPage() {
               </div>
             </div>
           )}
+          {suspicionDialog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+              <div className="w-[420px] max-w-[92vw] rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200">
+                  <div className="text-sm font-bold text-slate-900">
+                    {suspicionDialog.title}
+                  </div>
+                  <button
+                    type="button"
+                    className="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 bg-white hover:bg-slate-50"
+                    onClick={() => setSuspicionDialog(null)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="px-5 py-4 text-xs text-slate-700 whitespace-pre-wrap">
+                  {suspicionDialog.body}
+                </div>
+                <div className="flex items-center justify-end px-5 py-3 border-t border-slate-200 bg-white">
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-full text-xs font-medium border border-slate-200 bg-white hover:bg-slate-50"
+                    onClick={() => setSuspicionDialog(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div
@@ -1179,10 +1252,16 @@ function GraphPage() {
                             type="button"
                             className="text-left hover:text-emerald-600 transition-colors font-medium text-sm"
                             onClick={() => {
+                              selectNodeById(acc.account_id);
+                            }}
+                            onDoubleClick={() => {
                               const msg =
                                 suspicionExplanations[acc.account_id] ||
                                 `Account: ${acc.account_id}\nScore: ${acc.suspicion_score.toFixed(1)}/100`;
-                              alert(msg);
+                              setSuspicionDialog({
+                                title: `Suspicion Score: ${acc.account_id}`,
+                                body: msg,
+                              });
                             }}
                           >
                             {acc.account_id} — <span className="text-red-600 font-semibold">{acc.suspicion_score.toFixed(1)}</span>
