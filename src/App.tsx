@@ -295,6 +295,7 @@ function GraphPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [zoomPct, setZoomPct] = useState(100);
   const analysisMs = useAnalysisStore((s) => s.analysisMs);
   const setAnalysisMs = useAnalysisStore((s) => s.setAnalysisMs);
   const analysisJson = useAnalysisStore((s) => s.analysisJson);
@@ -458,6 +459,9 @@ function GraphPage() {
     });
 
     cyRef.current = cy;
+    cy.on('zoom', () => {
+      setZoomPct(Math.round(cy.zoom() * 100));
+    });
     const worker = new Worker(new URL('./analysis.worker.ts', import.meta.url), { type: 'module' });
     workerRef.current = worker;
     const loadCsv = async () => {
@@ -780,6 +784,22 @@ function GraphPage() {
     setTimeout(() => cyRef.current?.resize(), 0);
   };
 
+  const updateZoomPct = () => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    setZoomPct(Math.round(cy.zoom() * 100));
+  };
+
+  const zoomTo = (level: number) => {
+    const cy = cyRef.current;
+    const container = containerRef.current;
+    if (!cy || !container) return;
+    const rect = container.getBoundingClientRect();
+    const clamped = Math.min(4, Math.max(0.2, level));
+    cy.zoom({ level: clamped, renderedPosition: { x: rect.width / 2, y: rect.height / 2 } });
+    setZoomPct(Math.round(clamped * 100));
+  };
+
   const handleDownloadJson = () => {
     if (!analysisJson) return;
     const blob = new Blob([JSON.stringify(analysisJson, null, 2)], {
@@ -870,7 +890,46 @@ function GraphPage() {
     <div className="min-h-screen w-screen bg-[#f9faf9] font-sans selection:bg-emerald-100 selection:text-emerald-900">
       <div ref={containerWrapRef} className="h-screen w-screen flex">
         <div className="relative h-full flex-1">
-          <div ref={containerRef} className="h-full w-full" />
+          <div ref={containerRef} className="h-full w-full graph-grid" />
+          <div className="absolute left-5 bottom-5 z-20 flex flex-col items-center rounded-2xl border border-zinc-200 bg-white/90 shadow-lg backdrop-blur">
+            <button
+              type="button"
+              className="px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-emerald-600"
+              onClick={() => {
+                const cy = cyRef.current;
+                if (!cy) return;
+                zoomTo(cy.zoom() * 1.1);
+              }}
+              aria-label="Zoom in"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className="w-full border-y border-zinc-200 px-3 py-2 text-[11px] font-semibold text-zinc-600 hover:text-emerald-600"
+              onClick={() => {
+                const cy = cyRef.current;
+                if (!cy) return;
+                cy.fit(undefined, 60);
+                updateZoomPct();
+              }}
+              aria-label="Fit all"
+            >
+              {zoomPct}%
+            </button>
+            <button
+              type="button"
+              className="px-3 py-2 text-sm font-semibold text-zinc-700 hover:text-emerald-600"
+              onClick={() => {
+                const cy = cyRef.current;
+                if (!cy) return;
+                zoomTo(cy.zoom() / 1.1);
+              }}
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+          </div>
           {hoverInfo && nodeDetails[hoverInfo.id] && (
             <div
               className="absolute z-20 -translate-y-full rounded-md border border-zinc-200 bg-white/90 px-2 py-1 text-[11px] text-zinc-700 shadow"
@@ -967,7 +1026,7 @@ function GraphPage() {
                 </div>
                 <div className="flex h-[calc(80vh-52px-56px)]">
                   <div className="flex-1 bg-[#f9faf9]">
-                    <div ref={miniGraphRef} className="h-full w-full" />
+                    <div ref={miniGraphRef} className="h-full w-full graph-grid" />
                   </div>
                   <div className="w-[320px] border-l border-zinc-200 p-4 overflow-y-auto">
                     {nodeDetails[connectedNodesPopup.id] && (
