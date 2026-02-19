@@ -1,0 +1,1058 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useDropzone } from 'react-dropzone';
+import {
+  ShieldAlert,
+  Upload,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  ChevronRight,
+  Lock,
+  Search,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import cytoscape, { type Core } from 'cytoscape';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+function HomePage() {
+  const navigate = useNavigate();
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
+    setError(null);
+
+    if (fileRejections.length > 0) {
+      const rejection = fileRejections[0];
+      if (rejection.file.size > 5 * 1024 * 1024) {
+        setError('File is too large. Maximum size is 5MB.');
+      } else {
+        setError('Invalid file type. Please upload a CSV file.');
+      }
+      return;
+    }
+
+    if (acceptedFiles.length > 0) {
+      setFile(acceptedFiles[0]);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/csv': ['.csv'],
+    },
+    maxSize: 5 * 1024 * 1024, // 5MB
+    multiple: false,
+  } as any);
+
+  const handleAnalyze = () => {
+    if (!file) return;
+    setIsAnalyzing(true);
+    // Simulate analysis
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      alert('Analysis complete (Demo Mode). In a real app, this would process the CSV data.');
+      navigate('/graph');
+    }, 10);
+  };
+
+  return (
+    <div className="min-h-screen font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Navigation */}
+      <nav className="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <ShieldAlert className="text-white w-5 h-5" />
+            </div>
+            <span className="font-display font-bold text-xl tracking-tight">MuleGuard AI</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
+            <a href="#" className="hover:text-emerald-600 transition-colors">
+              About
+            </a>
+            <a
+              href="#"
+              className="bg-zinc-900 text-white px-4 py-2 rounded-full hover:bg-zinc-800 transition-all"
+            >
+              Working
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Hero Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="font-display text-5xl md:text-6xl font-bold text-zinc-900 leading-[1.1] mb-6">
+              Expose Money Muling <br />
+              <span className="text-emerald-600 italic">Before</span> It Happens.
+            </h1>
+
+            <p className="text-lg text-zinc-600 mb-10 max-w-lg leading-relaxed">
+              Our advanced neural patterns identify suspicious transaction flows, protecting your
+              institution from sophisticated financial crime networks.
+            </p>
+
+            {/* 3 Points */}
+            <div className="space-y-6 mb-12">
+              {[
+                {
+                  icon: Search,
+                  title: 'Pattern Recognition',
+                  desc: 'Identify rapid-fire transfers and unusual layering patterns.',
+                },
+                {
+                  icon: Lock,
+                  title: 'Risk Scoring',
+                  desc: 'Automated risk assessment for every transaction chain.',
+                },
+                {
+                  icon: CheckCircle2,
+                  title: 'Regulatory Ready',
+                  desc: 'Generate audit-ready reports for AML compliance.',
+                },
+              ].map((point, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  className="flex gap-4"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center">
+                    <point.icon className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-zinc-900">{point.title}</h3>
+                    <p className="text-sm text-zinc-500">{point.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Upload Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="relative"
+          >
+            <div className="absolute -inset-4 bg-emerald-500/5 rounded-[2.5rem] blur-2xl" />
+            <div className="relative bg-white border border-zinc-200 rounded-3xl p-8 shadow-xl shadow-zinc-200/50">
+              <div className="mb-8">
+                <h2 className="font-display text-2xl font-bold text-zinc-900 mb-2">
+                  Analyze Transactions
+                </h2>
+                <p className="text-sm text-zinc-500">
+                  Upload your transaction log to start the AI scan.
+                </p>
+              </div>
+
+              <div
+                {...getRootProps()}
+                className={cn(
+                  'border-2 border-dashed rounded-2xl p-10 transition-all cursor-pointer flex flex-col items-center justify-center text-center',
+                  isDragActive
+                    ? 'border-emerald-500 bg-emerald-50/50'
+                    : 'border-zinc-200 hover:border-zinc-300',
+                  file ? 'border-emerald-500 bg-emerald-50/10' : ''
+                )}
+              >
+                <input {...getInputProps()} />
+
+                <AnimatePresence mode="wait">
+                  {!file ? (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mb-4">
+                        <Upload className="w-8 h-8 text-zinc-400" />
+                      </div>
+                      <p className="text-zinc-900 font-medium mb-1">Drop your CSV here</p>
+                      <p className="text-xs text-zinc-400">Max file size 5MB • CSV only</p>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="file"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                        <FileText className="w-8 h-8 text-emerald-600" />
+                      </div>
+                      <p className="text-zinc-900 font-medium mb-1 truncate max-w-[200px]">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-emerald-600 font-medium">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                        }}
+                        className="mt-4 text-xs text-zinc-400 hover:text-zinc-600 underline"
+                      >
+                        Remove file
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 flex items-center gap-2 text-red-500 text-sm font-medium"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </motion.div>
+              )}
+
+              <button
+                disabled={!file || isAnalyzing}
+                onClick={handleAnalyze}
+                className={cn(
+                  'w-full mt-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg',
+                  file && !isAnalyzing
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200'
+                    : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
+                )}
+              >
+                {isAnalyzing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Analyzing Patterns...
+                  </>
+                ) : (
+                  <>
+                    Start Security Scan
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-200 py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-2 opacity-50 grayscale">
+            <ShieldAlert className="w-5 h-5" />
+            <span className="font-display font-bold text-lg">MuleGuard AI</span>
+          </div>
+          <div className="flex gap-8 text-sm text-zinc-400">
+            <a href="#" className="hover:text-zinc-600">
+              Privacy Policy
+            </a>
+            <a href="#" className="hover:text-zinc-600">
+              Terms of Service
+            </a>
+            <a href="#" className="hover:text-zinc-600">
+              Contact Support
+            </a>
+          </div>
+          <p className="text-sm text-zinc-400">© 2026 MuleGuard AI. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function GraphPage() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [paneWidthPct, setPaneWidthPct] = useState(40);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [detectionSummary, setDetectionSummary] = useState({
+    rings: 0,
+    smurfing: 0,
+    layered: 0,
+  });
+  const [ringPaths, setRingPaths] = useState<string[]>([]);
+  const [fanInGroups, setFanInGroups] = useState<string[]>([]);
+  const [fanOutGroups, setFanOutGroups] = useState<string[]>([]);
+  const [shellChains, setShellChains] = useState<string[]>([]);
+  const [analysisMs, setAnalysisMs] = useState<number | null>(null);
+  const [analysisJson, setAnalysisJson] = useState<Record<string, unknown> | null>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const analysisStartRef = useRef<number | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [suspiciousAccounts, setSuspiciousAccounts] = useState<
+    { account_id: string; suspicion_score: number; detected_patterns: string[]; ring_id: string }[]
+  >([]);
+  const [suspicionExplanations, setSuspicionExplanations] = useState<Record<string, string>>({});
+  const [nodeDetails, setNodeDetails] = useState<
+    Record<
+      string,
+      {
+        name: string;
+        suspicion_score: number;
+        net_balance: number;
+        credits: number;
+        debits: number;
+        rings: string[];
+        smurfs: string[];
+        shells: string[];
+        rings_count: number;
+        first_txn: string | null;
+        last_txn: string | null;
+      }
+    >
+  >({});
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [pinnedInfo, setPinnedInfo] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [edgeDetails, setEdgeDetails] = useState<
+    Record<string, { net: number; count: number; first_txn: string | null; last_txn: string | null }>
+  >({});
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [pinnedEdgeInfo, setPinnedEdgeInfo] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [ringMembers, setRingMembers] = useState<Record<string, string[]>>({});
+  const isResizingRef = useRef(false);
+  const containerWrapRef = useRef<HTMLDivElement | null>(null);
+  const paneRef = useRef<HTMLDivElement | null>(null);
+  const widthPctRef = useRef(40);
+  const rafRef = useRef<number | null>(null);
+  const cyRef = useRef<Core | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const cy = cytoscape({
+      container: containerRef.current,
+      elements: [],
+      layout: { name: 'cose', animate: false },
+      boxSelectionEnabled: true,
+      selectionType: 'additive',
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': '#16a34a',
+            'border-color': '#0f766e',
+            'border-width': 1,
+            color: '#0f172a',
+            label: 'data(label)',
+            'font-size': 10,
+            'text-background-color': '#ffffff',
+            'text-background-opacity': 0.7,
+            'text-background-padding': '2',
+            'text-valign': 'bottom',
+            'text-halign': 'center',
+          },
+        },
+        {
+          selector: 'node.cycle',
+          style: {
+            'background-color': '#f97316',
+            'border-color': '#ea580c',
+          },
+        },
+        {
+          selector: 'node.fan-in',
+          style: {
+            'background-color': '#0ea5e9',
+            'border-color': '#0284c7',
+          },
+        },
+        {
+          selector: 'node.fan-out',
+          style: {
+            'background-color': '#6366f1',
+            'border-color': '#4f46e5',
+          },
+        },
+        {
+          selector: 'node.stage-1',
+          style: {
+            'background-color': '#facc15',
+            'border-color': '#eab308',
+          },
+        },
+        {
+          selector: 'node.stage-2',
+          style: {
+            'background-color': '#a3e635',
+            'border-color': '#84cc16',
+          },
+        },
+        {
+          selector: 'node.stage-3',
+          style: {
+            'background-color': '#f472b6',
+            'border-color': '#ec4899',
+          },
+        },
+        {
+          selector: 'node.selected-node',
+          style: {
+            'border-width': 3,
+            'border-color': '#ef4444',
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            width: 1.2,
+            'line-color': '#64748b',
+            'target-arrow-color': '#64748b',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+          },
+        },
+        {
+          selector: 'edge.selected-edge',
+          style: {
+            width: 5,
+            'line-color': '#ef4444',
+            'target-arrow-color': '#ef4444',
+            'line-style': 'solid',
+            'z-index': 999,
+            opacity: 1,
+          },
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            width: 5,
+            'line-color': '#ef4444',
+            'target-arrow-color': '#ef4444',
+            'line-style': 'solid',
+            'z-index': 999,
+            opacity: 1,
+          },
+        },
+      ],
+    });
+
+    cyRef.current = cy;
+    const worker = new Worker(new URL('./analysis.worker.ts', import.meta.url), { type: 'module' });
+    workerRef.current = worker;
+    const loadCsv = async () => {
+      const startedAt = performance.now();
+      try {
+        const res = await fetch('/abc_30.csv');
+        if (!res.ok) return;
+        const text = await res.text();
+        setAnalysisMs(null);
+        setAnalysisError(null);
+        analysisStartRef.current = startedAt;
+        const lines = text.trim().split(/\r?\n/);
+        const header = lines.shift() ?? '';
+        const chunkSize = Math.ceil(lines.length / 4);
+        const chunks = [0, 1, 2, 3].map((i) => lines.slice(i * chunkSize, (i + 1) * chunkSize));
+
+        const parseWorkers = chunks.map(() => new Worker(new URL('./parse.worker.ts', import.meta.url), { type: 'module' }));
+
+        const parsePromises = parseWorkers.map(
+          (w, idx) =>
+            new Promise<{ rows: any[] }>((resolve) => {
+              w.onmessage = (e) => resolve(e.data);
+              w.postMessage({ header, lines: chunks[idx] });
+            })
+        );
+
+        const results = await Promise.all(parsePromises);
+        parseWorkers.forEach((w) => w.terminate());
+        const parseError = results.find((r: any) => r.error)?.error as string | undefined;
+        if (parseError) {
+          setAnalysisError(parseError);
+          return;
+        }
+        const rows = results.flatMap((r) => r.rows || []);
+
+        worker.postMessage({ rows, source: 'abc_30.csv' });
+      } catch {
+        // Ignore CSV load errors for now.
+      }
+    };
+
+    worker.onmessage = (event) => {
+      if (event.data?.error) {
+        setAnalysisError(String(event.data.error));
+        setAnalysisMs(event.data.analysisMs ?? null);
+        return;
+      }
+      const {
+        nodes,
+        edges,
+        classes,
+        rings,
+        smurfing,
+        layered,
+        counts,
+        analysisMs: workerMs,
+        analysisPayload,
+      } = event.data as {
+        nodes: { id: string; label: string }[];
+        edges: { id: string; source: string; target: string; label?: string; timestamp?: string }[];
+        classes: {
+          cycle: string[];
+          fanIn: string[];
+          fanOut: string[];
+          stage1: string[];
+          stage2: string[];
+          stage3: string[];
+        };
+        rings: string[];
+        smurfing: { fanIn: string[]; fanOut: string[] };
+        layered: string[];
+        counts: { rings: number; smurfing: number; layered: number };
+        analysisMs: number;
+        analysisPayload: Record<string, unknown>;
+      };
+
+      cy.elements().remove();
+      cy.add([
+        ...nodes.map((n) => ({ data: { id: n.id, label: n.label }, classes: 'node-default' })),
+        ...edges.map((e) => ({
+          data: {
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            label: e.label,
+            timestamp: e.timestamp,
+          },
+        })),
+      ]);
+      const useFastLayout = edges.length > 5000 || nodes.length > 3000;
+      cy.layout({ name: useFastLayout ? 'grid' : 'cose', animate: false }).run();
+
+      cy.removeListener('tap');
+      cy.on('tap', 'node', (evt) => {
+        const id = evt.target.id();
+        cy.nodes().removeClass('selected-node');
+        evt.target.addClass('selected-node');
+        setSelectedNodeId(id);
+        const pos = evt.renderedPosition || { x: 0, y: 0 };
+        setPinnedInfo({ id, x: pos.x, y: pos.y });
+        cy.edges().removeClass('selected-edge');
+        setSelectedEdgeId(null);
+        setPinnedEdgeInfo(null);
+      });
+      cy.on('tap', 'edge', (evt) => {
+        const edge = evt.target;
+        cy.edges().removeClass('selected-edge');
+        edge.addClass('selected-edge');
+        edge.select();
+        const source = edge.data('source');
+        const target = edge.data('target');
+        const edgeKey = `${source}→${target}`;
+        const pos = evt.renderedPosition || { x: 0, y: 0 };
+        setSelectedEdgeId(edgeKey);
+        setPinnedEdgeInfo({ id: edgeKey, x: pos.x, y: pos.y });
+        cy.nodes().removeClass('selected-node');
+        setSelectedNodeId(null);
+        setPinnedInfo(null);
+      });
+      cy.on('tap', (evt) => {
+        if (evt.target === cy) {
+          cy.nodes().removeClass('selected-node');
+          setSelectedNodeId(null);
+          setPinnedInfo(null);
+          cy.edges().removeClass('selected-edge');
+          setSelectedEdgeId(null);
+          setPinnedEdgeInfo(null);
+        }
+      });
+      cy.nodes().selectify();
+
+      classes.cycle.forEach((id) => cy.getElementById(id).addClass('cycle'));
+      classes.fanIn.forEach((id) => cy.getElementById(id).addClass('fan-in'));
+      classes.fanOut.forEach((id) => cy.getElementById(id).addClass('fan-out'));
+      classes.stage1.forEach((id) => cy.getElementById(id).addClass('stage-1'));
+      classes.stage2.forEach((id) => cy.getElementById(id).addClass('stage-2'));
+      classes.stage3.forEach((id) => cy.getElementById(id).addClass('stage-3'));
+
+      setDetectionSummary(counts);
+      setRingPaths(rings);
+      setFanInGroups(smurfing.fanIn);
+      setFanOutGroups(smurfing.fanOut);
+      setShellChains(layered);
+      setAnalysisJson(analysisPayload);
+      setSuspiciousAccounts(analysisPayload.suspicious_accounts || []);
+      setSuspicionExplanations(analysisPayload.suspicion_explanations || {});
+      setNodeDetails(analysisPayload.node_details || {});
+      setEdgeDetails(analysisPayload.edge_details || {});
+      const ringMap: Record<string, string[]> = {};
+      (analysisPayload.fraud_rings || []).forEach((r: any) => {
+        ringMap[r.ring_id] = r.member_accounts || [];
+      });
+      setRingMembers(ringMap);
+      const elapsed = analysisStartRef.current ? performance.now() - analysisStartRef.current : workerMs;
+      setAnalysisMs(elapsed);
+      setAnalysisError(null);
+      cyRef.current?.resize();
+    };
+
+    worker.onerror = () => {
+      setAnalysisError('Worker error');
+      setAnalysisMs(null);
+    };
+
+    worker.onmessageerror = () => {
+      setAnalysisError('Worker message error');
+      setAnalysisMs(null);
+    };
+
+    void loadCsv();
+
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+      cy.removeListener('tap');
+      cy.destroy();
+      cyRef.current = null;
+    };
+  }, []);
+
+  const handleResizeMove = (event: React.PointerEvent) => {
+    if (!isResizingRef.current || !containerWrapRef.current || !paneRef.current) return;
+    const rect = containerWrapRef.current.getBoundingClientRect();
+    const minPx = rect.width * 0.2;
+    const maxPx = rect.width * 0.6;
+    const px = Math.min(maxPx, Math.max(minPx, rect.right - event.clientX));
+    const pct = (px / rect.width) * 100;
+    widthPctRef.current = pct;
+
+    if (rafRef.current !== null) return;
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!paneRef.current) return;
+      paneRef.current.style.width = `${px}px`;
+    });
+  };
+
+  const handleResizeEnd = () => {
+    isResizingRef.current = false;
+    setIsResizing(false);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    setPaneWidthPct(widthPctRef.current);
+    cyRef.current?.resize();
+  };
+
+  useEffect(() => {
+    if (!paneRef.current) return;
+    paneRef.current.style.width = `${paneWidthPct}%`;
+    widthPctRef.current = paneWidthPct;
+  }, [isCollapsed, paneWidthPct]);
+
+  const handleResizeStart = (event: React.PointerEvent) => {
+    isResizingRef.current = true;
+    setIsResizing(true);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    cyRef.current?.resize();
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      return next;
+    });
+    setTimeout(() => cyRef.current?.resize(), 0);
+  };
+
+  const handleDownloadJson = () => {
+    if (!analysisJson) return;
+    const blob = new Blob([JSON.stringify(analysisJson, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'muling-analysis.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const selectNodesAndEdges = (
+    memberSet: Set<string>,
+    edgeMatch?: (source: string, target: string) => boolean
+  ) => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    cy.nodes().removeClass('selected-node');
+    cy.edges().removeClass('selected-edge');
+    const selected = cy.collection();
+    memberSet.forEach((m) => {
+      const node = cy.getElementById(m);
+      node.addClass('selected-node');
+      selected.merge(node);
+    });
+    cy.edges().forEach((e) => {
+      const s = e.data('source');
+      const t = e.data('target');
+      if (edgeMatch) {
+        if (edgeMatch(s, t)) {
+          e.addClass('selected-edge');
+          selected.merge(e);
+        }
+      } else if (memberSet.has(s) && memberSet.has(t)) {
+        e.addClass('selected-edge');
+        selected.merge(e);
+      }
+    });
+    if (selected.length > 0) {
+      cy.animate(
+        {
+          fit: {
+            eles: selected,
+            padding: 60,
+          },
+        },
+        { duration: 400 }
+      );
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-screen bg-[#f9faf9] font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      <div ref={containerWrapRef} className="h-screen w-screen flex">
+        <div className="relative h-full flex-1">
+          <div ref={containerRef} className="h-full w-full" />
+          {pinnedInfo && nodeDetails[pinnedInfo.id] && (
+            <div
+              className="absolute z-30 -translate-y-full rounded-lg border border-zinc-200 bg-white/95 px-3 py-2 text-xs text-zinc-700 shadow-lg"
+              style={{ left: pinnedInfo.x + 12, top: pinnedInfo.y - 12 }}
+              tabIndex={0}
+              onBlur={() => setPinnedInfo(null)}
+            >
+              <div className="font-semibold text-zinc-900">
+                {nodeDetails[pinnedInfo.id].name} (SS: {nodeDetails[pinnedInfo.id].suspicion_score.toFixed(1)}%)
+              </div>
+              <div className="mt-1">Net balance: {nodeDetails[pinnedInfo.id].net_balance}</div>
+              <div>Credits: {nodeDetails[pinnedInfo.id].credits}</div>
+              <div>Debits: {nodeDetails[pinnedInfo.id].debits}</div>
+              {(() => {
+                const rings = nodeDetails[pinnedInfo.id].rings || [];
+                const smurfs = nodeDetails[pinnedInfo.id].smurfs || [];
+                const shells = nodeDetails[pinnedInfo.id].shells || [];
+                const total = rings.length + smurfs.length + shells.length;
+                if (total === 0) return null;
+                const showAll = total <= 3;
+                const ringsShow = showAll ? rings : rings.slice(0, 3);
+                const smurfsShow = showAll ? smurfs : smurfs.slice(0, 3);
+                const shellsShow = showAll ? shells : shells.slice(0, 2);
+                return (
+                  <>
+                    {ringsShow.length > 0 && (
+                      <div className="mt-1">Rings: {ringsShow.join(', ')}</div>
+                    )}
+                    {smurfsShow.length > 0 && (
+                      <div>Smurfing: {smurfsShow.join(', ')}</div>
+                    )}
+                    {shellsShow.length > 0 && (
+                      <div>Shells: {shellsShow.join(', ')}</div>
+                    )}
+                  </>
+                );
+              })()}
+              {nodeDetails[pinnedInfo.id].first_txn && (
+                <div className="mt-1">
+                  Time from: {new Date(nodeDetails[pinnedInfo.id].first_txn).toLocaleString()}
+                </div>
+              )}
+              {nodeDetails[pinnedInfo.id].last_txn && (
+                <div>
+                  Time to: {new Date(nodeDetails[pinnedInfo.id].last_txn).toLocaleString()}
+                </div>
+              )}
+            </div>
+          )}
+          {pinnedEdgeInfo && edgeDetails[pinnedEdgeInfo.id] && (
+            <div
+              className="absolute z-30 -translate-y-full rounded-lg border border-zinc-200 bg-white/95 px-3 py-2 text-xs text-zinc-700 shadow-lg"
+              style={{ left: pinnedEdgeInfo.x + 12, top: pinnedEdgeInfo.y - 12 }}
+              tabIndex={0}
+              onBlur={() => setPinnedEdgeInfo(null)}
+            >
+              <div className="font-semibold text-zinc-900">Edge: {pinnedEdgeInfo.id}</div>
+              <div className="mt-1">Net amount: {edgeDetails[pinnedEdgeInfo.id].net}</div>
+              <div>Transactions: {edgeDetails[pinnedEdgeInfo.id].count}</div>
+              {edgeDetails[pinnedEdgeInfo.id].first_txn && (
+                <div className="mt-1">
+                  Time from: {new Date(edgeDetails[pinnedEdgeInfo.id].first_txn).toLocaleString()}
+                </div>
+              )}
+              {edgeDetails[pinnedEdgeInfo.id].last_txn && (
+                <div>
+                  Time to: {new Date(edgeDetails[pinnedEdgeInfo.id].last_txn).toLocaleString()}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div
+          className="h-full flex-none"
+          style={{
+            width: isCollapsed ? '0%' : `${paneWidthPct}%`,
+            minWidth: isCollapsed ? '0' : '240px',
+          }}
+        />
+
+        <div
+          ref={paneRef}
+          className={cn(
+            'fixed right-0 top-0 h-screen flex-none border-l-2 border-[oklch(0.92_0.004_286.32)] bg-white backdrop-blur-md transition-all',
+            'shadow-[-8px_0_24px_-12px_rgba(24,24,27,0.25)]',
+            'transition-[transform,padding] duration-300 ease-in-out',
+            isCollapsed ? 'p-0 overflow-hidden pointer-events-none' : 'p-6'
+          )}
+          style={{
+            width: `${paneWidthPct}%`,
+            minWidth: '240px',
+            transform: isCollapsed ? 'translate3d(100%, 0, 0)' : 'translate3d(0, 0, 0)',
+            willChange: 'transform, padding',
+          }}
+        >
+          {!isCollapsed && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              className={cn(
+                'absolute left-0 top-0 h-full w-3 -translate-x-full cursor-col-resize',
+                'bg-transparent transition-colors flex items-center touch-none group',
+                'hover:bg-emerald-100/60'
+              )}
+              onPointerDown={handleResizeStart}
+            >
+              <div className="mx-auto h-20 w-1.5 rounded-full bg-zinc-300 group-hover:bg-emerald-400/70 transition-colors" />
+            </div>
+          )}
+          <div className="h-full w-full rounded-2xl bg-transparent flex flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-2">
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold tracking-widest text-zinc-400 mb-3">
+                  IDENTIFIED MULING
+                </h3>
+                {analysisError && (
+                  <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {analysisError}
+                  </div>
+                )}
+                <div className="text-sm text-zinc-700">
+                  <div className="font-semibold mb-2">Suspicion Scores</div>
+                  {suspiciousAccounts.length === 0 ? (
+                    <div className="text-zinc-400">None detected</div>
+                  ) : (
+                    <ol className="list-decimal list-inside space-y-1">
+                      {suspiciousAccounts.map((acc) => (
+                        <li key={acc.account_id}>
+                          <button
+                            type="button"
+                            className="text-left hover:text-emerald-700"
+                            onClick={() => {
+                              const msg =
+                                suspicionExplanations[acc.account_id] ||
+                                `Account: ${acc.account_id}\nScore: ${acc.suspicion_score.toFixed(1)}/100`;
+                              alert(msg);
+                            }}
+                          >
+                            {acc.account_id} — {acc.suspicion_score.toFixed(1)}
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  <div className="mt-5 font-semibold">Rings</div>
+                  {ringPaths.length === 0 ? (
+                    <div className="text-zinc-400">None detected</div>
+                  ) : (
+                    <ol className="list-decimal list-inside space-y-1">
+                      {ringPaths.map((ring, idx) => {
+                        const ringId = `RING_${String(idx + 1).padStart(3, '0')}`;
+                        return (
+                          <li key={`${ring}-${idx}`}>
+                            <button
+                              type="button"
+                              className="text-left hover:text-emerald-700"
+                              onClick={() => {
+                                const members = ringMembers[ringId] || [];
+                                const cy = cyRef.current;
+                                if (!cy) return;
+                                cy.nodes().removeClass('selected-node');
+                                cy.edges().removeClass('selected-edge');
+                                const memberSet = new Set(members);
+                                members.forEach((m) => cy.getElementById(m).addClass('selected-node'));
+                                cy.edges().forEach((e) => {
+                                  const s = e.data('source');
+                                  const t = e.data('target');
+                                  if (memberSet.has(s) && memberSet.has(t)) e.addClass('selected-edge');
+                                });
+                              }}
+                            >
+                              {ring}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+                <div className="mt-5 font-semibold">Smurfing</div>
+                <div className="mt-2 text-zinc-500 text-xs uppercase tracking-wide">Fan-in</div>
+                    {fanInGroups.length === 0 ? (
+                      <div className="text-zinc-400">None detected</div>
+                    ) : (
+                      <ol className="list-decimal list-inside space-y-1">
+                        {fanInGroups.map((item, idx) => (
+                          <li key={`fanin-${idx}`}>
+                            <button
+                              type="button"
+                              className="text-left hover:text-emerald-700"
+                              onClick={() => {
+                                const parts = item.split('←').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const receiver = parts[0];
+                                const senders = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                const memberSet = new Set([receiver, ...senders]);
+                                selectNodesAndEdges(memberSet, (s, t) => senders.includes(s) && t === receiver);
+                              }}
+                            >
+                              {item}
+                            </button>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                <div className="mt-4 text-zinc-500 text-xs uppercase tracking-wide">Fan-out</div>
+                    {fanOutGroups.length === 0 ? (
+                      <div className="text-zinc-400">None detected</div>
+                    ) : (
+                      <ol className="list-decimal list-inside space-y-1">
+                        {fanOutGroups.map((item, idx) => (
+                          <li key={`fanout-${idx}`}>
+                            <button
+                              type="button"
+                              className="text-left hover:text-emerald-700"
+                              onClick={() => {
+                                const parts = item.split('→').map((p) => p.trim());
+                                if (parts.length !== 2) return;
+                                const sender = parts[0];
+                                const receivers = parts[1].split(',').map((s) => s.trim()).filter(Boolean);
+                                const memberSet = new Set([sender, ...receivers]);
+                                selectNodesAndEdges(memberSet, (s, t) => s === sender && receivers.includes(t));
+                              }}
+                            >
+                              {item}
+                            </button>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                <div className="mt-5 font-semibold">Layered Shell Networks</div>
+                    {shellChains.length === 0 ? (
+                      <div className="text-zinc-400">None detected</div>
+                    ) : (
+                      <ol className="list-decimal list-inside space-y-1">
+                        {shellChains.map((item, idx) => (
+                          <li key={`shell-${idx}`}>
+                            <button
+                              type="button"
+                              className="text-left hover:text-emerald-700"
+                              onClick={() => {
+                                const nodes = item.split('→').map((p) => p.trim()).filter(Boolean);
+                                const memberSet = new Set(nodes);
+                                selectNodesAndEdges(memberSet, (s, t) => {
+                                  const i = nodes.indexOf(s);
+                                  return i !== -1 && nodes[i + 1] === t;
+                                });
+                              }}
+                            >
+                              {item}
+                            </button>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+              </div>
+            </div>
+            </div>
+            <div className="mt-auto pt-4 flex items-center justify-between text-xs text-zinc-500">
+              <div>
+                Time:{' '}
+                {analysisMs === null
+                  ? '—'
+                  : `${(analysisMs / 1000).toFixed(analysisMs % 1000 === 0 ? 0 : 1)}s`}
+              </div>
+              <button
+                onClick={handleDownloadJson}
+                className={cn(
+                  'px-3 py-2 rounded-full text-xs font-semibold border border-zinc-200',
+                  'bg-white hover:bg-zinc-50',
+                  !analysisJson && 'opacity-50 cursor-not-allowed'
+                )}
+                disabled={!analysisJson}
+              >
+                Download JSON
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {isResizing && (
+        <div
+          className="fixed inset-0 z-40 cursor-col-resize"
+          onPointerMove={handleResizeMove}
+          onPointerUp={handleResizeEnd}
+          onPointerCancel={handleResizeEnd}
+        />
+      )}
+
+      <button
+        onClick={toggleCollapse}
+        className={cn(
+          'absolute top-6 right-6 z-10 px-3 py-2 rounded-full text-xs font-semibold border border-zinc-200',
+          'bg-white/90 backdrop-blur-md hover:bg-white'
+        )}
+      >
+        {isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
+      </button>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/graph" element={<GraphPage />} />
+    </Routes>
+  );
+}
