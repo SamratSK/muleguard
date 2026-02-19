@@ -294,6 +294,7 @@ function GraphPage() {
   const [paneWidthPct, setPaneWidthPct] = useState(40);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [hoverInfo, setHoverInfo] = useState<{ id: string; x: number; y: number } | null>(null);
   const analysisMs = useAnalysisStore((s) => s.analysisMs);
   const setAnalysisMs = useAnalysisStore((s) => s.setAnalysisMs);
   const analysisJson = useAnalysisStore((s) => s.analysisJson);
@@ -312,6 +313,10 @@ function GraphPage() {
   const setShellChains = useAnalysisStore((s) => s.setShellChains);
   const ringMembers = useAnalysisStore((s) => s.ringMembers);
   const setRingMembers = useAnalysisStore((s) => s.setRingMembers);
+  const ringDisplays = useAnalysisStore((s) => s.ringDisplays);
+  const setRingDisplays = useAnalysisStore((s) => s.setRingDisplays);
+  const fraudRings = useAnalysisStore((s) => s.fraudRings);
+  const setFraudRings = useAnalysisStore((s) => s.setFraudRings);
   const suspiciousAccounts = useAnalysisStore((s) => s.suspiciousAccounts);
   const setSuspiciousAccounts = useAnalysisStore((s) => s.setSuspiciousAccounts);
   const suspicionExplanations = useAnalysisStore((s) => s.suspicionExplanations);
@@ -558,6 +563,12 @@ function GraphPage() {
         setPinnedEdgeInfo(null);
         setConnectedNodesPopup(null);
       });
+      cy.on('mouseover', 'node', (evt) => {
+        const id = evt.target.id();
+        const pos = evt.renderedPosition || { x: 0, y: 0 };
+        setHoverInfo({ id, x: pos.x, y: pos.y });
+      });
+      cy.on('mouseout', 'node', () => setHoverInfo(null));
       cy.on('dblclick', 'node', (evt) => {
         const id = evt.target.id();
         const node = evt.target;
@@ -614,6 +625,8 @@ function GraphPage() {
         ringMap[r.ring_id] = r.member_accounts || [];
       });
       setRingMembers(ringMap);
+      setRingDisplays(analysisPayload.ring_displays || {});
+      setFraudRings(analysisPayload.fraud_rings || []);
       const elapsed = analysisStartRef.current ? performance.now() - analysisStartRef.current : workerMs;
       setAnalysisMs(elapsed);
       setAnalysisError(null);
@@ -637,6 +650,8 @@ function GraphPage() {
       workerRef.current = null;
       cy.removeListener('tap');
       cy.removeListener('dblclick');
+      cy.removeListener('mouseover');
+      cy.removeListener('mouseout');
       cy.destroy();
       cyRef.current = null;
     };
@@ -856,6 +871,14 @@ function GraphPage() {
       <div ref={containerWrapRef} className="h-screen w-screen flex">
         <div className="relative h-full flex-1">
           <div ref={containerRef} className="h-full w-full" />
+          {hoverInfo && nodeDetails[hoverInfo.id] && (
+            <div
+              className="absolute z-20 -translate-y-full rounded-md border border-zinc-200 bg-white/90 px-2 py-1 text-[11px] text-zinc-700 shadow"
+              style={{ left: hoverInfo.x + 10, top: hoverInfo.y - 10 }}
+            >
+              {nodeDetails[hoverInfo.id].name} — SS {nodeDetails[hoverInfo.id].suspicion_score.toFixed(1)}%
+            </div>
+          )}
           {pinnedInfo && nodeDetails[pinnedInfo.id] && (
             <div
               className="absolute z-30 -translate-y-full rounded-lg border border-zinc-200 bg-white/95 px-3 py-2 text-xs text-zinc-700 shadow-lg"
@@ -1094,12 +1117,15 @@ function GraphPage() {
                     </ol>
                   )}
                   <div className="mt-5 font-semibold">Rings</div>
-                  {ringPaths.length === 0 ? (
+                  {fraudRings.filter((r) => r.pattern_type === 'cycle').length === 0 ? (
                     <div className="text-zinc-400">None detected</div>
                   ) : (
                     <ol className="list-decimal list-inside space-y-1">
-                      {ringPaths.map((ring, idx) => {
-                        const ringId = `RING_${String(idx + 1).padStart(3, '0')}`;
+                      {fraudRings
+                        .filter((r) => r.pattern_type === 'cycle')
+                        .map((r, idx) => {
+                        const ringId = r.ring_id;
+                        const ring = ringDisplays[ringId] || r.member_accounts.join(' → ');
                         return (
                           <li key={`${ring}-${idx}`} className="flex items-start justify-between gap-2">
                             <button
@@ -1147,6 +1173,33 @@ function GraphPage() {
                         );
                       })}
                     </ol>
+                  )}
+                  <div className="mt-6 font-semibold">Fraud Ring Summary</div>
+                  {fraudRings.length === 0 ? (
+                    <div className="text-zinc-400">None detected</div>
+                  ) : (
+                    <div className="mt-2 border border-zinc-200 rounded-lg overflow-hidden text-xs text-zinc-700">
+                      <div className="grid grid-cols-5 gap-2 bg-zinc-50 px-3 py-2 font-semibold">
+                        <div>Ring ID</div>
+                        <div>Pattern</div>
+                        <div>Members</div>
+                        <div>Risk</div>
+                        <div>Accounts</div>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {fraudRings.map((r) => (
+                          <div key={r.ring_id} className="grid grid-cols-5 gap-2 px-3 py-2 border-t border-zinc-100">
+                            <div>{r.ring_id}</div>
+                            <div>{r.pattern_type}</div>
+                            <div>{r.member_accounts.length}</div>
+                            <div>{r.risk_score.toFixed(1)}</div>
+                            <div className="truncate" title={r.member_accounts.join(', ')}>
+                              {r.member_accounts.join(', ')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 <div className="mt-5 font-semibold">Smurfing</div>
                 <div className="mt-2 text-zinc-500 text-xs uppercase tracking-wide">Fan-in</div>

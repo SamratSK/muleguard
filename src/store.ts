@@ -35,6 +35,8 @@ type AnalysisState = {
   fanOutGroups: string[];
   shellChains: string[];
   ringMembers: Record<string, string[]>;
+  ringDisplays: Record<string, string>;
+  fraudRings: { ring_id: string; member_accounts: string[]; pattern_type: string; risk_score: number }[];
   analysisMs: number | null;
   analysisError: string | null;
   analysisJson: Record<string, unknown> | null;
@@ -56,6 +58,8 @@ type AnalysisState = {
   setFanOutGroups: (groups: string[]) => void;
   setShellChains: (chains: string[]) => void;
   setRingMembers: (members: Record<string, string[]>) => void;
+  setRingDisplays: (displays: Record<string, string>) => void;
+  setFraudRings: (rings: { ring_id: string; member_accounts: string[]; pattern_type: string; risk_score: number }[]) => void;
   setSuspiciousAccounts: (list: SuspiciousAccount[]) => void;
   setSuspicionExplanations: (data: Record<string, string>) => void;
   setNodeDetails: (data: Record<string, NodeDetail>) => void;
@@ -74,6 +78,8 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   fanOutGroups: [],
   shellChains: [],
   ringMembers: {},
+  ringDisplays: {},
+  fraudRings: [],
   analysisMs: null,
   analysisError: null,
   analysisJson: null,
@@ -95,6 +101,8 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   setFanOutGroups: (fanOutGroups) => set({ fanOutGroups }),
   setShellChains: (shellChains) => set({ shellChains }),
   setRingMembers: (ringMembers) => set({ ringMembers }),
+  setRingDisplays: (ringDisplays) => set({ ringDisplays }),
+  setFraudRings: (fraudRings) => set({ fraudRings }),
   setSuspiciousAccounts: (suspiciousAccounts) => set({ suspiciousAccounts }),
   setSuspicionExplanations: (suspicionExplanations) => set({ suspicionExplanations }),
   setNodeDetails: (nodeDetails) => set({ nodeDetails }),

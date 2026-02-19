@@ -341,32 +341,35 @@ ctx.onmessage = async (event: MessageEvent<MessageIn>) => {
   // Deterministic ring IDs and suspicion scores
   const ringEntries: { ring_id: string; member_accounts: string[]; pattern_type: string; risk_score: number }[] = [];
   const ringKeySet = new Set<string>();
-  const ringCandidates: { key: string; pattern: string; members: string[]; base: number }[] = [];
+  const ringCandidates: { key: string; pattern: string; members: string[]; base: number; display?: string }[] = [];
 
-  const addRing = (pattern: string, members: string[], baseScore: number) => {
+  const addRing = (pattern: string, members: string[], baseScore: number, display?: string) => {
     const filtered = members.filter((m) => !isSuppressed(m));
     if (filtered.length === 0) return;
     const sorted = [...new Set(filtered)].sort();
     const key = `${pattern}:${sorted.join('|')}`;
     if (ringKeySet.has(key)) return;
     ringKeySet.add(key);
-    ringCandidates.push({ key, pattern, members: sorted, base: baseScore });
+    ringCandidates.push({ key, pattern, members: sorted, base: baseScore, display });
   };
 
-  cycleGroups.forEach((g) => addRing('cycle', g, 90));
+  cycleGroups.forEach((g) => addRing('cycle', g, 90, `${g.join(' → ')} → ${g[0]}`));
   shellChains.forEach((g) => addRing('shell_chain', g, 85));
   fanInMap.forEach((senders, receiver) => addRing('fan_in', [receiver, ...senders], 70));
   fanOutMap.forEach((receivers, sender) => addRing('fan_out', [sender, ...receivers], 70));
 
+  const ringDisplays: Record<string, string> = {};
   ringCandidates
     .sort((a, b) => (a.pattern === b.pattern ? a.key.localeCompare(b.key) : a.pattern.localeCompare(b.pattern)))
     .forEach((r, idx) => {
+      const ring_id = `RING_${String(idx + 1).padStart(3, '0')}`;
       ringEntries.push({
-        ring_id: `RING_${String(idx + 1).padStart(3, '0')}`,
+        ring_id,
         member_accounts: r.members,
         pattern_type: r.pattern,
         risk_score: Math.min(100, r.base + Math.min(20, r.members.length * 2)),
       });
+      if (r.display) ringDisplays[ring_id] = r.display;
     });
 
   const accountPatterns = new Map<string, Set<string>>();
@@ -565,6 +568,7 @@ ctx.onmessage = async (event: MessageEvent<MessageIn>) => {
     node_details,
     edge_details,
     fraud_rings: ringEntries,
+    ring_displays: ringDisplays,
     summary: {
       total_accounts_analyzed: nodes.length,
       suspicious_accounts_flagged: suspicious_accounts.length,
