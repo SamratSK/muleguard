@@ -127,6 +127,7 @@ npm run dev
 2. Click **Start Live**.
 3. Each incoming CSV line is batched every 1 second and analyzed.
 For a trivial test stream, you can use the small helper app in [SamratSK/mr-mule](https://github.com/SamratSK/mr-mule).
+The same live pipeline can be extended to real‑time rails (e‑transactions, UPI, and even decentralized systems) by wiring their feeds into the stream.
 
 ### Input Specification
 CSV columns (exact):
