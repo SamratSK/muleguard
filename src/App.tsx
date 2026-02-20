@@ -335,6 +335,7 @@ function HomePage() {
 }
 
 function GraphPage() {
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [paneWidthPct, setPaneWidthPct] = useState(40);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -773,6 +774,12 @@ function GraphPage() {
       cyRef.current = null;
     };
   }, [csvText, splitCsvLine, wsUrl]);
+
+  useEffect(() => {
+    if (!csvText && !wsUrl.trim()) {
+      navigate('/');
+    }
+  }, [csvText, navigate, wsUrl]);
 
   const connectWebSocket = useCallback(() => {
     if (!wsUrl.trim()) return;
