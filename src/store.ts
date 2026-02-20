@@ -50,6 +50,8 @@ type AnalysisState = {
   pinnedNode: { id: string; x: number; y: number } | null;
   pinnedEdge: { id: string; x: number; y: number } | null;
   connectedNodesPopup: { id: string; title: string; nodes: string[]; x: number; y: number } | null;
+  wsUrl: string;
+  wsShouldConnect: boolean;
   setAnalysisMs: (ms: number | null) => void;
   setAnalysisError: (msg: string | null) => void;
   setAnalysisJson: (payload: Record<string, unknown> | null) => void;
@@ -71,6 +73,8 @@ type AnalysisState = {
   setPinnedNode: (data: { id: string; x: number; y: number } | null) => void;
   setPinnedEdge: (data: { id: string; x: number; y: number } | null) => void;
   setConnectedNodesPopup: (data: { id: string; title: string; nodes: string[]; x: number; y: number } | null) => void;
+  setWsUrl: (url: string) => void;
+  setWsShouldConnect: (flag: boolean) => void;
 };
 
 export const useAnalysisStore = create<AnalysisState>((set) => ({
@@ -95,6 +99,8 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   pinnedNode: null,
   pinnedEdge: null,
   connectedNodesPopup: null,
+  wsUrl: '',
+  wsShouldConnect: false,
   setAnalysisMs: (analysisMs) => set({ analysisMs }),
   setAnalysisError: (analysisError) => set({ analysisError }),
   setAnalysisJson: (analysisJson) => set({ analysisJson }),
@@ -116,4 +122,6 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   setPinnedNode: (pinnedNode) => set({ pinnedNode }),
   setPinnedEdge: (pinnedEdge) => set({ pinnedEdge }),
   setConnectedNodesPopup: (connectedNodesPopup) => set({ connectedNodesPopup }),
+  setWsUrl: (wsUrl) => set({ wsUrl }),
+  setWsShouldConnect: (wsShouldConnect) => set({ wsShouldConnect }),
 }));

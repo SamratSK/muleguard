@@ -19,6 +19,7 @@ type MessageIn = {
   csvText?: string;
   rows?: CsvRow[];
   source?: string;
+  mode?: 'append' | 'replace';
 };
 
 const splitCsvLine = (line: string): string[] => {
@@ -73,6 +74,7 @@ const parseCsv = (text: string): CsvRow[] => {
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 let wasmReady: Promise<void> | null = null;
+let bufferedRows: CsvRow[] = [];
 let wasmAnalyze: ((edgeCount: number) => number) | null = null;
 let wasmFanIn:
   | ((
@@ -138,13 +140,19 @@ const initWasm = async () => {
 
 ctx.onmessage = async (event: MessageEvent<MessageIn>) => {
   const startedAt = performance.now();
-  const { csvText, rows: inputRows, source = 'abc.csv' } = event.data;
+  const { csvText, rows: inputRows, source = 'abc.csv', mode = 'replace' } = event.data;
 
   try {
     await initWasm();
-    const rows = (inputRows ?? parseCsv(csvText ?? '')).filter(
+    const incoming = (inputRows ?? parseCsv(csvText ?? '')).filter(
       (r) => r.sender_id && r.receiver_id
     );
+    if (mode === 'replace') {
+      bufferedRows = incoming;
+    } else if (incoming.length > 0) {
+      bufferedRows = bufferedRows.concat(incoming);
+    }
+    const rows = bufferedRows;
 
     const nodeSet = new Set<string>();
     const edges: Edge[] = [];

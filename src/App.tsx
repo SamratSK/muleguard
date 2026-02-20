@@ -35,10 +35,14 @@ function cn(...inputs: ClassValue[]) {
 
 function HomePage() {
   const setCsvText = useAnalysisStore((s) => s.setCsvText);
+  const wsUrl = useAnalysisStore((s) => s.wsUrl);
+  const setWsUrl = useAnalysisStore((s) => s.setWsUrl);
+  const setWsShouldConnect = useAnalysisStore((s) => s.setWsShouldConnect);
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [wsError, setWsError] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
     setError(null);
@@ -88,7 +92,7 @@ function HomePage() {
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
               <ShieldAlert className="text-white w-5 h-5" />
             </div>
-            <span className="font-display font-bold text-xl tracking-tight">MuleGuard AI</span>
+            <span className="font-display font-bold text-xl tracking-tight">MuleGuard</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#" className="hover:text-emerald-600 transition-colors">
@@ -168,6 +172,38 @@ function HomePage() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-emerald-500/5 rounded-[2.5rem] blur-2xl" />
+            <div className="relative mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="text-[11px] font-semibold tracking-widest text-slate-400 mb-2">
+                LIVE STREAM
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={wsUrl}
+                  onChange={(e) => {
+                    setWsError(null);
+                    setWsUrl(e.target.value);
+                  }}
+                  placeholder="wss://your-stream"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!wsUrl.trim()) {
+                      setWsError('Enter a WebSocket URL to start streaming.');
+                      return;
+                    }
+                    setWsShouldConnect(true);
+                    navigate('/graph');
+                  }}
+                  className="px-3 py-2 rounded-lg text-xs font-semibold border border-emerald-200 bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  Start Live
+                </button>
+              </div>
+              {wsError && <div className="mt-2 text-[11px] text-red-500">{wsError}</div>}
+            </div>
             <div className="relative bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
               <div className="mb-8">
                 <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
@@ -308,6 +344,12 @@ function GraphPage() {
   const [suspicionDialog, setSuspicionDialog] = useState<{ title: string; body: string } | null>(
     null
   );
+  const [wsStatus, setWsStatus] = useState<'disconnected' | 'connecting' | 'connected'>(
+    'disconnected'
+  );
+  const wsUrl = useAnalysisStore((s) => s.wsUrl);
+  const wsShouldConnect = useAnalysisStore((s) => s.wsShouldConnect);
+  const setWsShouldConnect = useAnalysisStore((s) => s.setWsShouldConnect);
   const analysisMs = useAnalysisStore((s) => s.analysisMs);
   const setAnalysisMs = useAnalysisStore((s) => s.setAnalysisMs);
   const analysisJson = useAnalysisStore((s) => s.analysisJson);
@@ -352,6 +394,11 @@ function GraphPage() {
   const miniGraphRef = useRef<HTMLDivElement | null>(null);
   const miniCyRef = useRef<Core | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const wsBufferRef = useRef<
+    { transaction_id: string; sender_id: string; receiver_id: string; amount: string; timestamp: string }[]
+  >([]);
+  const wsTimerRef = useRef<number | null>(null);
   const analysisStartRef = useRef<number | null>(null);
   // analysis state is centralized in the store
   const isResizingRef = useRef(false);
@@ -360,6 +407,32 @@ function GraphPage() {
   const widthPctRef = useRef(40);
   const rafRef = useRef<number | null>(null);
   const cyRef = useRef<Core | null>(null);
+
+  const splitCsvLine = useCallback((line: string) => {
+    const cells: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        cells.push(current);
+        current = '';
+        continue;
+      }
+      current += ch;
+    }
+    cells.push(current);
+    return cells.map((c) => c.trim());
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -480,13 +553,10 @@ function GraphPage() {
     const loadCsv = async () => {
       const startedAt = performance.now();
       try {
-        const text = csvText ?? (await (async () => {
-          const res = await fetch('abc_30.csv');
-          if (!res.ok) {
-            throw new Error(`Failed to load sample CSV: ${res.status}`);
-          }
-          return res.text();
-        })());
+        if (!csvText) {
+          return;
+        }
+        const text = csvText;
         setAnalysisMs(null);
         setAnalysisError(null);
         analysisStartRef.current = startedAt;
@@ -514,7 +584,7 @@ function GraphPage() {
         }
         const rows = results.flatMap((r) => r.rows || []);
 
-        worker.postMessage({ rows, source: csvText ? 'upload.csv' : 'abc_30.csv' });
+        worker.postMessage({ rows, source: 'upload.csv', mode: 'replace' });
       } catch {
         setAnalysisError('Failed to load CSV for analysis.');
       }
@@ -684,6 +754,15 @@ function GraphPage() {
     void loadCsv();
 
     return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      if (wsTimerRef.current !== null) {
+        window.clearInterval(wsTimerRef.current);
+        wsTimerRef.current = null;
+      }
+      setWsStatus('disconnected');
       worker.terminate();
       workerRef.current = null;
       cy.removeListener('tap');
@@ -693,7 +772,90 @@ function GraphPage() {
       cy.destroy();
       cyRef.current = null;
     };
-  }, [csvText]);
+  }, [csvText, splitCsvLine, wsUrl]);
+
+  const connectWebSocket = useCallback(() => {
+    if (!wsUrl.trim()) return;
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (wsTimerRef.current !== null) {
+      window.clearInterval(wsTimerRef.current);
+      wsTimerRef.current = null;
+    }
+    wsBufferRef.current = [];
+    setWsStatus('connecting');
+    const ws = new WebSocket(wsUrl.trim());
+    wsRef.current = ws;
+
+    ws.onopen = () => setWsStatus('connected');
+    ws.onclose = () => setWsStatus('disconnected');
+    ws.onerror = () => setWsStatus('disconnected');
+    ws.onmessage = (event) => {
+      let payload = event.data as unknown;
+      if (typeof payload === 'string') {
+        const trimmed = payload.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try {
+            payload = JSON.parse(trimmed);
+          } catch {
+            payload = trimmed;
+          }
+        } else {
+          payload = trimmed;
+        }
+      }
+      const line =
+        typeof payload === 'string'
+          ? payload
+          : typeof (payload as any)?.row === 'string'
+            ? (payload as any).row
+            : '';
+      const normalized = String(line ?? '').trim();
+      if (!normalized) return;
+      const cells = splitCsvLine(normalized);
+      if (cells.length < 5) return;
+      wsBufferRef.current.push({
+        transaction_id: cells[0] ?? '',
+        sender_id: cells[1] ?? '',
+        receiver_id: cells[2] ?? '',
+        amount: cells[3] ?? '',
+        timestamp: cells[4] ?? '',
+      });
+    };
+
+    wsTimerRef.current = window.setInterval(() => {
+      const batch = wsBufferRef.current;
+      if (batch.length === 0) return;
+      wsBufferRef.current = [];
+      analysisStartRef.current = performance.now();
+      workerRef.current?.postMessage({ rows: batch, source: 'ws', mode: 'append' });
+    }, 1000);
+  }, [splitCsvLine, wsUrl]);
+
+  const disconnectWebSocket = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (wsTimerRef.current !== null) {
+      window.clearInterval(wsTimerRef.current);
+      wsTimerRef.current = null;
+    }
+    wsBufferRef.current = [];
+    setWsStatus('disconnected');
+  }, []);
+
+  useEffect(() => {
+    if (!wsShouldConnect) return;
+    if (!wsUrl.trim()) {
+      setWsShouldConnect(false);
+      return;
+    }
+    connectWebSocket();
+    setWsShouldConnect(false);
+  }, [connectWebSocket, setWsShouldConnect, wsShouldConnect, wsUrl]);
 
   const handleResizeMove = (event: React.PointerEvent) => {
     if (!isResizingRef.current || !containerWrapRef.current || !paneRef.current) return;
