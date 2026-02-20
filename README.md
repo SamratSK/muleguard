@@ -126,6 +126,7 @@ npm run dev
 1. Enter WebSocket URL on the home page.
 2. Click **Start Live**.
 3. Each incoming CSV line is batched every 1 second and analyzed.
+For a trivial test stream, you can use the small helper app in [SamratSK/mr-mule](https://github.com/SamratSK/mr-mule).
 
 ### Input Specification
 CSV columns (exact):
