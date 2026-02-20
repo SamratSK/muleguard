@@ -37,6 +37,25 @@ Live Demo URL: https://samratsk.github.io/muleguard/
   </tr>
 </table>
 
+## Flowchart
+```mermaid
+flowchart TD
+  A[Home Page] --> B{User Action}
+  B -->|Upload CSV| C[Read file + store csvText]
+  C --> D[Navigate to /graph]
+  B -->|Start Live| E[Store wsUrl]
+  E --> D
+  D --> F[Init Cytoscape + Workers]
+  F --> G{csvText?}
+  G -->|Yes| H[Parse CSV in workers]
+  H --> I[Send rows to analysis.worker]
+  G -->|No| J[Connect WebSocket]
+  J --> K[Buffer rows for 1s]
+  K --> I
+  I --> L[WASM inference]
+  L --> M[Render graph + panels]
+```
+
 ## Project Title
 MuleGuard AI — Money Muling Detection Challenge Submission
 
@@ -45,13 +64,13 @@ MuleGuard AI — Money Muling Detection Challenge Submission
 - Vite
 - Zustand
 - Cytoscape
-- Web Workers + WASM (Rust)
+- **Rust + WebAssembly (WASM)** for high‑performance graph analytics
 - Tailwind CSS
 
 ## System Architecture
 - **UI Layer (React):** CSV upload, live stream input, graph visualization, side panel insights, JSON export.
 - **State Layer (Zustand):** Shared analysis state across pages.
-- **Compute Layer (Web Workers + WASM):** Parsing and detection run off the main thread.
+- **Compute Layer (Web Workers + Rust/WASM):** Hot‑path detection (cycles, smurfing, shells) compiled to WASM and executed off the main thread.
 - **Graph Layer (Cytoscape):** Interactive rendering, selection, zoom, and styling of suspicious nodes and rings.
 
 ## Algorithm Approach (with Complexity)
@@ -137,6 +156,9 @@ transaction_id,sender_id,receiver_id,amount,timestamp
 ## Performance
 - ~10k rows process in ~**5 seconds** (parse + inference + render).
 - Rust + WASM accelerates graph scans and avoids GC pauses.
+- Tight Rust loops operate over typed arrays (`Uint32Array`, `Float64Array`) for minimal conversion overhead.
+- WASM runs in a sandboxed module with predictable memory behavior, improving consistency under load.
+- Web Workers keep all Rust/WASM compute off the UI thread to preserve interaction responsiveness.
 
 ## Team Members
 - Saikalyan C B (@saikalyancb-06)
@@ -149,4 +171,24 @@ transaction_id,sender_id,receiver_id,amount,timestamp
 - Comprehensive README (this file)
 
 ## License
-MIT
+MIT License
+
+Copyright (c) 2026 MuleGuard AI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software\"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
