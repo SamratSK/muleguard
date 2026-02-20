@@ -421,7 +421,7 @@ ctx.onmessage = async (event: MessageEvent<MessageIn>) => {
   });
 
   const patternLabel = (p: string) => {
-    if (p === 'cycle') return 'cycle_length_3_5';
+    if (p === 'cycle') return 'cycle_length_3';
     if (p === 'fan_in') return 'fan_in_10_plus_72h';
     if (p === 'fan_out') return 'fan_out_10_plus_72h';
     if (p === 'shell_chain') return 'layered_shell_3_hops';

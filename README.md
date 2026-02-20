@@ -1,96 +1,152 @@
-# MuleGuard AI
+# MuleGuard AI — Graph-Based Financial Crime Detection Engine
 
-MuleGuard AI is a client‑side transaction analysis and visualization app for spotting money‑muling patterns. It ingests CSV files or live WebSocket streams, runs inference in a Web Worker (with WASM acceleration), and renders interactive graph insights in the browser.
+Live Demo URL: https://samratsk.github.io/muleguard/
 
-## Features
-- CSV upload and parsing (client‑side).
-- Live streaming via WebSocket (batched every 1s).
-- Pattern detection:
-  - Cycles (rings)
-  - Smurfing (fan‑in / fan‑out)
-  - Layered shell chains
-- Interactive Cytoscape graph with selection, zoom, and detail overlays.
-- Side panel with suspicious accounts, ring summaries, smurfing groups, and layered chains.
-- Export results as JSON.
+## Screenshots
+<table>
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/landing-page.png" width="900" />
+      <br />
+      Landing page
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <img src="screenshots/graph-1.png" width="900" />
+      <br />
+      General look
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="screenshots/live.png" width="280" />
+      <br />
+      Live stream
+    </td>
+    <td align="center">
+      <img src="screenshots/10k.png" width="280" />
+      <br />
+      10k items
+    </td>
+    <td align="center">
+      <img src="screenshots/individual-chain.png" width="280" />
+      <br />
+      Individual chain
+    </td>
+  </tr>
+</table>
 
-## Performance Notes
-- On typical hardware, ~10k rows process in about **5 seconds** end‑to‑end (parse + inference + render).
-- Layout performance is adaptive:
-  - Small graphs use `cose` for better aesthetics.
-  - Larger graphs fall back to `grid` (with a 2s `cose` timeout) for responsiveness.
+## Project Title
+MuleGuard AI — Money Muling Detection Challenge Submission
 
 ## Tech Stack
 - React + TypeScript
 - Vite
-- Zustand (state)
-- Cytoscape (graph rendering)
-- Web Workers + WASM (analysis)
+- Zustand
+- Cytoscape
+- Web Workers + WASM (Rust)
 - Tailwind CSS
 
-## Getting Started
+## System Architecture
+- **UI Layer (React):** CSV upload, live stream input, graph visualization, side panel insights, JSON export.
+- **State Layer (Zustand):** Shared analysis state across pages.
+- **Compute Layer (Web Workers + WASM):** Parsing and detection run off the main thread.
+- **Graph Layer (Cytoscape):** Interactive rendering, selection, zoom, and styling of suspicious nodes and rings.
 
+## Algorithm Approach (with Complexity)
+1. **Graph Construction**
+   - Nodes: unique `sender_id` and `receiver_id`.
+   - Edges: directed transactions with amount and timestamp.
+   - Complexity: `O(E)`.
+
+2. **Cycle Detection (rings, length 3–5)**
+   - Detect short cycles to identify circular fund routing.
+   - Complexity (bounded): `O(V * d^L)` where `L <= 5`, `d` is average degree. Bounded depth keeps this tractable.
+
+3. **Smurfing (Fan‑in / Fan‑out within 72 hours)**
+   - Fan‑in: 10+ unique senders → 1 receiver.
+   - Fan‑out: 1 sender → 10+ receivers.
+   - Uses sliding time window (72h).
+   - Complexity: `O(E log E)` for time sorting + window scan.
+
+4. **Layered Shell Chains (3+ hops)**
+   - Detect chains of 3+ transfers with low‑activity intermediates.
+   - Complexity: bounded DFS depth `O(V * d^L)` with `L` fixed.
+
+## Suspicion Score Methodology
+Each account receives a score (0–100) from detected patterns:
+- Cycle participation → base score + risk boost
+- Fan‑in / Fan‑out → medium risk boost
+- Shell chains → high risk boost
+- Multiple patterns → additive bonus
+
+Scores are capped at 100 and sorted descending in output. Ring IDs are deterministic and stable for reproducibility.
+
+## Installation & Setup
 ### Prerequisites
-- Node.js (LTS recommended)
+- Node.js (LTS)
 
 ### Install
 ```bash
 npm install
 ```
 
-### Run locally
+### Run
 ```bash
 npm run dev
 ```
 
-## Usage
-
-### 1) CSV Upload
+## Usage Instructions
+### CSV Upload
 1. Open the home page.
-2. Upload a CSV file with the schema below.
-3. Click **Start Security Scan** to analyze and visualize.
+2. Upload CSV with the exact schema below.
+3. Click **Start Security Scan**.
 
-### 2) Live Streaming
-1. On the home page, enter your WebSocket URL.
+### Live Streaming
+1. Enter WebSocket URL on the home page.
 2. Click **Start Live**.
-3. Each incoming transaction line is buffered and processed every 1s.
+3. Each incoming CSV line is batched every 1 second and analyzed.
 
-### CSV / Stream Format
-Plaintext CSV lines (no header for stream):
+### Input Specification
+CSV columns (exact):
 ```
 transaction_id,sender_id,receiver_id,amount,timestamp
-TXN_00000001,ACC_00123,ACC_00456,15000,2024-01-21 03:01:00
 ```
-- WebSocket payloads can be:
-  - a raw CSV string, or
-  - JSON containing `{ "row": "<csv line>" }`.
+- `timestamp` format: `YYYY-MM-DD HH:MM:SS`
 
-## Behavior Overview
-- Uploaded CSV replaces any existing dataset in memory.
-- WebSocket batches are appended to the in‑memory dataset.
-- If `/graph` is opened directly without a CSV or WS URL, it redirects back to `/`.
+### Required JSON Output Format (Exact)
+```
+{ "suspicious_accounts": [
+    { "account_id": "ACC_00123", "suspicion_score": 87.5,
+      "detected_patterns": ["cycle_length_3", "high_velocity"],
+      "ring_id": "RING_001" } ],
+  "fraud_rings": [
+    { "ring_id": "RING_001", "member_accounts": ["ACC_00123", ...],
+      "pattern_type": "cycle", "risk_score": 95.3 } ],
+  "summary": { "total_accounts_analyzed": 500,
+    "suspicious_accounts_flagged": 15, "fraud_rings_detected": 4,
+    "processing_time_seconds": 2.3 }
+}
+```
 
-## Outputs
-- **Suspicious accounts:** ranked by detected patterns.
-- **Fraud rings:** deterministic ring IDs with risk scoring.
-- **Smurfing groups:** fan‑in and fan‑out clusters.
-- **Shell chains:** layered transfer paths.
-- **Export:** JSON via the **Download JSON** button.
+## Known Limitations
+- Client‑side analysis is limited by browser CPU and memory.
+- Extremely dense graphs may need fast layouts for responsiveness.
 
-## Project Structure
-- `src/App.tsx` — UI + graph behavior
-- `src/store.ts` — Zustand state
-- `src/analysis.worker.ts` — inference pipeline + WASM integration
-- `src/parse.worker.ts` — CSV parsing workers
-- `wasm/` — WASM artifacts
+## Performance
+- ~10k rows process in ~**5 seconds** (parse + inference + render).
+- Rust + WASM accelerates graph scans and avoids GC pauses.
 
-## Limitations
-- CSV parsing is line‑based and expects consistent comma‑separated fields.
-- Client‑side analysis is bound by browser memory and CPU.
-- Extremely large graphs should favor fast layouts for responsiveness.
+## Team Members
+- Saikalyan C B (@saikalyancb-06)
+- Samrat S K (@SamratSK)
 
-## Tips
-- For live streaming, prefer steady rates (e.g. 1–5 lines/sec) and keep batches small.
-- For large datasets, use the download JSON output to archive and review results.
+## Submission Checklist (RIFT 2026)
+- Live deployed URL (public, no auth)
+- LinkedIn demo video
+- Public GitHub repository
+- Comprehensive README (this file)
 
 ## License
-Apache‑2.0
+MIT
