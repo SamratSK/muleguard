@@ -136,18 +136,37 @@ transaction_id,sender_id,receiver_id,amount,timestamp
 ```
 - `timestamp` format: `YYYY-MM-DD HH:MM:SS`
 
-### Required JSON Output Format (Exact)
-```
-{ "suspicious_accounts": [
-    { "account_id": "ACC_00123", "suspicion_score": 87.5,
-      "detected_patterns": ["cycle_length_3", "high_velocity"],
-      "ring_id": "RING_001" } ],
-  "fraud_rings": [
-    { "ring_id": "RING_001", "member_accounts": ["ACC_00123", ...],
-      "pattern_type": "cycle", "risk_score": 95.3 } ],
-  "summary": { "total_accounts_analyzed": 500,
-    "suspicious_accounts_flagged": 15, "fraud_rings_detected": 4,
-    "processing_time_seconds": 2.3 }
+### Required JSON Output Format (Exactly as required)
+```json
+{
+   "suspicious_accounts":[
+      {
+         "account_id":"ACC_00123",
+         "suspicion_score":87.5,
+         "detected_patterns":[
+            "cycle_length_3",
+            "high_velocity"
+         ],
+         "ring_id":"RING_001"
+      }
+   ],
+   "fraud_rings":[
+      {
+         "ring_id":"RING_001",
+         "member_accounts":[
+            "ACC_00123",
+            "..."
+         ],
+         "pattern_type":"cycle",
+         "risk_score":95.3
+      }
+   ],
+   "summary":{
+      "total_accounts_analyzed":500,
+      "suspicious_accounts_flagged":15,
+      "fraud_rings_detected":4,
+      "processing_time_seconds":2.3
+   }
 }
 ```
 
