@@ -161,14 +161,8 @@ transaction_id,sender_id,receiver_id,amount,timestamp
 - Web Workers keep all Rust/WASM compute off the UI thread to preserve interaction responsiveness.
 
 ## Team Members
-- Saikalyan C B (@saikalyancb-06)
-- Samrat S K (@SamratSK)
-
-## Submission Checklist (RIFT 2026)
-- Live deployed URL (public, no auth)
-- LinkedIn demo video
-- Public GitHub repository
-- Comprehensive README (this file)
+- Saikalyan C B (<a href="https://github.com/saikalyancb-06">@saikalyancb-06</a>)
+- Samrat S K (<a href="https://github.com/SamratSK">@SamratSK</a>)
 
 ## License
 MIT License
